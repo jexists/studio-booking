@@ -47,6 +47,34 @@ const STATUS: Record<MyReservation["status"], { label: string; tone: "warning" |
   CANCELLED: { label: "취소", tone: "neutral" },
   NO_SHOW: { label: "노쇼", tone: "neutral" },
 };
+// 배송중: 송장번호를 크게 보여 주고, 누르면 택배사 배송조회(현재 위치) 페이지를 연다.
+function TrackingBox({ w }: { w: MyWork }) {
+  const body = (
+    <>
+      <span className="text-sm text-muted">
+        배송중 · {w.carrierName} 송장번호
+      </span>
+      <span className="tabular text-xl font-semibold text-primary">{w.trackingNo}</span>
+      {w.trackUrl && (
+        <span className="flex items-center gap-1 text-sm font-semibold text-primary">
+          눌러서 현재 위치 보기
+          <svg className="size-4" viewBox="0 0 16 16" fill="none" aria-hidden>
+            <path d="M6 3h7v7M13 3L4 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+      )}
+    </>
+  );
+  const box = "flex min-h-11 flex-col gap-1 rounded-md border border-primary bg-primary-subtle px-4 py-3";
+  return w.trackUrl ? (
+    <a href={w.trackUrl} target="_blank" rel="noopener noreferrer" className={`${box} hover:bg-surface-muted`} aria-label={`${w.carrierName} 송장번호 ${w.trackingNo} 배송 현재 위치 보기 (새 창)`}>
+      {body}
+    </a>
+  ) : (
+    <div className={box}>{body}</div>
+  );
+}
+
 function WorkCard({ w }: { w: MyWork }) {
   return (
     <Card className="flex flex-col gap-4">
@@ -62,6 +90,7 @@ function WorkCard({ w }: { w: MyWork }) {
         </p>
       )}
       <StageBar stage={w.stage} broken={w.broken} />
+      {w.shipStatus === "SHIPPING" && w.trackingNo && <TrackingBox w={w} />}
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
         {w.expectedFrom && w.expectedTo && (
           <>
@@ -89,7 +118,7 @@ function WorkCard({ w }: { w: MyWork }) {
             <dd>
               <span className="font-semibold">{w.shipStatus === "PREPARING" ? "택배 준비중" : w.shipStatus === "SHIPPING" ? "배송중" : "배송완료"}</span>
               {w.shipStatus === "DELIVERED" && w.deliveredAt ? ` (${fmtDate(w.deliveredAt)})` : ""}
-              {w.trackingNo && (
+              {w.trackingNo && w.shipStatus !== "SHIPPING" && (
                 <span className="tabular mt-0.5 block text-muted">
                   {w.carrierName} {w.trackingNo}
                   {w.trackUrl && (

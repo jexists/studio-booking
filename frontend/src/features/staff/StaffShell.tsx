@@ -52,7 +52,7 @@ export function StaffShell({ children }: { children: ReactNode }) {
       .catch(() => undefined);
     return onAuthChange(() => {
       const next = getSession();
-      if (!next) router.replace("/");
+      if (!next) router.replace("/staff/login");
       setSession(next);
     });
   }, [isPublic, router]);

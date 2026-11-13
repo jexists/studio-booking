@@ -451,7 +451,7 @@ body.on-demo #bar { display: none; }
       <h3><span class="badge b-ok">오늘</span> 규칙이 정해진 일</h3>
       <div class="item"><div class="w">예약 신청 · 확정 · 취소 환불</div><div class="h">정원 일반 8 / 물레 6, 3일 전 전액 · 이후 50%</div></div>
       <div class="item"><div class="w">작품 6단계 · 수강생 조회</div><div class="h">성형 → 초벌 → 유약 → 재벌 → 완성 → 수령</div></div>
-      <div class="item"><div class="w">택배 배송</div><div class="h">송장 입력 · 배송 조회 링크</div></div>
+      <div class="item"><div class="w">택배 배송</div><div class="h">송장 입력 · 수강생 송장번호 누르면 현재 위치</div></div>
       <div class="item"><div class="w">보강 · 단체 문의 · 직원 권한</div><div class="h">같은 주 · 다른 반, 견적은 대표만</div></div>
     </div>
     <div class="side">
@@ -554,11 +554,14 @@ body.on-demo #bar { display: none; }
       <div class="ar"><svg viewBox="0 0 44 24"><path d="M0,10 H32 V2 L44,12 L32,22 V14 H0 Z"/></svg></div>
       <div class="st"><div class="nm">DELIVERED</div><div class="big">배송완료</div><div class="ex">수령 단계로 이동</div></div>
     </div>
-    <ul class="bullets r">
-      <li>완성 전 발송 거절 · 송장번호 숫자 8~20자리 확인</li>
-      <li>발송 뒤 수령 방식 변경 거절</li>
-      <li>수강생 화면에 택배사 배송 조회 링크</li>
-    </ul>
+    <div class="r" style="display:flex;gap:48px;align-items:center">
+      <ul class="bullets" style="flex:1">
+        <li>완성 전 발송 거절 · 송장번호 숫자 8~20자리 확인</li>
+        <li>발송 뒤 수령 방식 변경 거절</li>
+        <li>수강생: 배송중이면 송장번호 바로 표시 → 누르면 택배사 현재 위치<span class="sub">휴대폰 화면 기준, 택배사 공식 배송조회 페이지를 새 창으로</span></li>
+      </ul>
+      <div style="width:400px"><div class="fit" style="height:300px"><img src="captures/09-me-tracking.jpg" alt="수강생 배송중 송장번호"></div><div class="cap">수강생 화면 — 송장번호 누르면 현재 위치</div></div>
+    </div>
   </div>
 </section>
 

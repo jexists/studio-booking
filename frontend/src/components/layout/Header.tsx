@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { buttonClass } from "@/components/ui/Button";
+import { clearSession, getSession, onAuthChange, type StaffSession } from "@/lib/auth";
 import { clearMemberSession, getMemberSession, onMemberAuthChange, type MemberSession } from "@/lib/member";
 
 const NAV = [
@@ -13,11 +14,12 @@ const NAV = [
   { href: "/group", label: "단체 문의" },
 ];
 
-// 공개 화면 헤더는 수강생의 작품 조회 상태만 표시한다. 직원 인증은 /staff 아래에서만 처리한다.
+// 공개 화면은 수강생 세션, /staff는 대표(OWNER) 직원 세션만 헤더에 표시한다.
 export function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const [session, setSession] = useState<MemberSession | null>(null);
+  const [staffSession, setStaffSession] = useState<StaffSession | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
   const userRef = useRef<HTMLDivElement>(null);
@@ -27,6 +29,16 @@ export function Header() {
     sync();
     return onMemberAuthChange(sync);
   }, []);
+
+  useEffect(() => {
+    if (!pathname.startsWith("/staff")) {
+      setStaffSession(null);
+      return;
+    }
+    const sync = () => setStaffSession(getSession());
+    sync();
+    return onAuthChange(sync);
+  }, [pathname]);
 
   useEffect(() => {
     if (!userOpen) return;
@@ -49,6 +61,15 @@ export function Header() {
     router.push("/");
   };
 
+  const logoutStaff = () => {
+    setUserOpen(false);
+    setMenuOpen(false);
+    clearSession();
+    router.replace("/staff/login");
+  };
+
+  const isStaffPath = pathname.startsWith("/staff");
+
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/95 backdrop-blur-sm">
       <div className="mx-auto flex h-16 w-full max-w-[1200px] items-center gap-6 px-5 md:px-6 lg:px-10">
@@ -65,7 +86,29 @@ export function Header() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          {!pathname.startsWith("/staff") && (session ? (
+          {isStaffPath && staffSession?.role === "OWNER" ? (
+            <div ref={userRef} className="relative">
+              <button
+                type="button"
+                aria-haspopup="menu"
+                aria-expanded={userOpen}
+                onClick={() => setUserOpen((v) => !v)}
+                className="inline-flex min-h-10 items-center gap-1 rounded-md px-3 text-sm font-semibold text-ink hover:bg-surface-muted"
+              >
+                {staffSession.name} 님
+                <svg className="size-4 text-muted" viewBox="0 0 16 16" fill="none" aria-hidden>
+                  <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              {userOpen && (
+                <div role="menu" className="hf-anim-fade absolute right-0 mt-2 w-44 overflow-hidden rounded-md border border-line bg-surface py-1 shadow-float">
+                  <button role="menuitem" type="button" onClick={logoutStaff} className="block w-full px-4 py-2.5 text-left text-sm text-ink hover:bg-surface-muted">
+                    로그아웃
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : !isStaffPath && (session ? (
             <div ref={userRef} className="relative">
               <button
                 type="button"

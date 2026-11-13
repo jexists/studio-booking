@@ -27,6 +27,8 @@ export const statusTone: Record<string, BadgeTone> = {
   신청: "warning",
   확정: "success",
   취소: "neutral",
+  노쇼: "error",
+  "환불 요청": "warning",
   대기: "warning",
   승인: "success",
   반려: "error",

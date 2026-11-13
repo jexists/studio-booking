@@ -9,7 +9,7 @@ import { Sheet } from "@/components/ui/Overlay";
 import { EmptyState, PageTitle, Skeleton } from "@/components/ui/PageTitle";
 import { api, ApiError } from "@/lib/api";
 import { getSession } from "@/lib/auth";
-import { fmtDate, fmtDay } from "@/lib/format";
+import { fmtDate, fmtDay, fmtDateYear } from "@/lib/format";
 import { toast } from "@/lib/notify";
 
 type Status = "NEW" | "QUOTED" | "CONFIRMED" | "DONE" | "CANCELLED";
@@ -100,7 +100,7 @@ function Detail({ item, isOwner, onSaved }: { item: Inquiry; isOwner: boolean; o
         <dt className="text-muted">인원</dt>
         <dd className="tabular">{item.headcount}명</dd>
         <dt className="text-muted">희망일</dt>
-        <dd className="tabular">{item.preferredDate ? fmtDay(item.preferredDate) : "미정"}</dd>
+        <dd className="tabular">{item.preferredDate ? fmtDateYear(item.preferredDate) : "미정"}</dd>
         <dt className="text-muted">장소</dt>
         <dd>{item.place ?? "미정"}</dd>
         <dt className="text-muted">접수일</dt>
@@ -246,7 +246,7 @@ export default function InquiriesPage() {
                     <span className="min-w-0">
                       <span className="block truncate font-semibold">{i.orgName}</span>
                       <span className="tabular block truncate text-sm text-muted">
-                        {fmtDate(i.createdAt)} 접수 · {i.headcount}명 · 희망 {i.preferredDate ? fmtDate(i.preferredDate) : "미정"}
+                        {fmtDate(i.createdAt)} 접수 · {i.headcount}명 · 희망 {i.preferredDate ? fmtDateYear(i.preferredDate) : "미정"}
                         {i.quoteAmount != null ? ` · ${won(i.quoteAmount)}` : ""}
                       </span>
                     </span>

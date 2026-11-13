@@ -20,7 +20,7 @@ export class DashboardService {
     const from = startOfTodayKst();
     const to = new Date(from.getTime() + DAY);
 
-    const [sessions, pendingReservations, makeupsRequested, newInquiries, bisqueWaiting, glazeWaiting, overdueWorks] =
+    const [sessions, pendingReservations, makeupsRequested, newInquiries, bisqueWaiting, glazeWaiting, overdueWorks, cancelRequests, noShowsToday] =
       await Promise.all([
         this.prisma.classSession.findMany({
           where: { startsAt: { gte: from, lt: to } },
@@ -47,6 +47,15 @@ export class DashboardService {
         this.prisma.work.count({
           where: { stage: 'DONE', completedAt: { lt: new Date(from.getTime() - KEEP_DAYS * DAY) } },
         }),
+        // 처리 대기 중인 수강생 환불 요청 (오래된 순)
+        this.prisma.reservation.findMany({
+          where: { cancelRequestedAt: { not: null }, status: { in: ['PENDING', 'CONFIRMED'] } },
+          orderBy: { cancelRequestedAt: 'asc' },
+          take: 20,
+          include: { session: { select: { id: true, title: true, startsAt: true } } },
+        }),
+        // [가정] 오늘 수업의 노쇼 인원
+        this.prisma.reservation.count({ where: { status: 'NO_SHOW', session: { startsAt: { gte: from, lt: to } } } }),
       ]);
 
     const sum = (rows: { headcount: number }[]) => rows.reduce((n, r) => n + r.headcount, 0);
@@ -81,6 +90,19 @@ export class DashboardService {
       newInquiries,
       kiln: { min: KILN_MIN, bisqueWaiting, glazeWaiting },
       overdueWorks,
+      noShowsToday,
+      cancelRequests: cancelRequests.map((r) => ({
+        id: r.id,
+        reservationNo: r.reservationNo,
+        name: r.name,
+        headcount: r.headcount,
+        sessionId: r.session?.id ?? null,
+        title: r.session?.title ?? '',
+        startsAt: r.session?.startsAt ?? null,
+        cancelRequestedAt: r.cancelRequestedAt,
+        cancelRequestRate: r.cancelRequestRate,
+        cancelReason: r.cancelReason,
+      })),
     };
   }
 }

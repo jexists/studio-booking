@@ -24,3 +24,7 @@ services:
         sync: false
       - key: MAIL_FROM
         value: onboarding@resend.dev
+      - key: OPENAI_API_KEY # 질문하기(RAG)용. 값은 대시보드에서 직접 입력
+        sync: false
+      - key: OPENAI_CHAT_MODEL
+        value: gpt-4.1-mini

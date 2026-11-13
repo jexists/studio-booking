@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState, PageTitle, Skeleton } from "@/components/ui/PageTitle";
 import { api } from "@/lib/api";
-import { fmtTime } from "@/lib/format";
+import { fmtDay, fmtTime } from "@/lib/format";
 
 type TodaySession = {
   id: number;
@@ -27,6 +27,19 @@ type Dashboard = {
   newInquiries: number;
   kiln: { min: number; bisqueWaiting: number; glazeWaiting: number };
   overdueWorks: number;
+  noShowsToday: number;
+  cancelRequests: {
+    id: number;
+    reservationNo: string;
+    name: string;
+    headcount: number;
+    sessionId: number | null;
+    title: string;
+    startsAt: string | null;
+    cancelRequestedAt: string;
+    cancelRequestRate: number;
+    cancelReason: string | null;
+  }[];
 };
 
 function StatCard({ href, label, value, unit, ready, alert }: { href: string; label: string; value: number; unit?: string; ready?: boolean; alert?: boolean }) {
@@ -64,7 +77,7 @@ export default function StaffHomePage() {
         ) : (
           <>
             <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-3">
-              {Array.from({ length: 6 }, (_, i) => (
+              {Array.from({ length: 8 }, (_, i) => (
                 <Skeleton key={i} className="h-24" />
               ))}
             </div>
@@ -93,7 +106,37 @@ export default function StaffHomePage() {
               ready={data.kiln.glazeWaiting >= data.kiln.min}
             />
             <StatCard href="/staff/works" label="보관 기한 지남" value={data.overdueWorks} unit="점" alert />
+            <StatCard href="#cancel-requests" label="환불 요청" value={data.cancelRequests.length} unit="건" alert />
+            <StatCard href="/staff/classes" label="오늘 노쇼" value={data.noShowsToday} unit="명" />
           </div>
+
+          {data.cancelRequests.length > 0 && (
+            <section id="cancel-requests" className="mb-8">
+              <h2 className="mb-3 text-lg font-semibold text-ink">환불 요청</h2>
+              <ul className="flex flex-col gap-3">
+                {data.cancelRequests.map((r) => (
+                  <li key={r.id}>
+                    <Link
+                      href={r.sessionId ? `/staff/classes/${r.sessionId}` : "/staff/classes"}
+                      className="flex items-center gap-4 rounded-lg border border-line bg-surface p-4 transition-colors hover:border-primary"
+                    >
+                      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                        <span className="truncate text-base font-semibold text-ink">
+                          {r.name} · {r.headcount}명
+                        </span>
+                        <span className="tabular truncate text-sm text-muted">
+                          {r.title}
+                          {r.startsAt ? ` · ${fmtDay(r.startsAt)} ${fmtTime(r.startsAt)}` : ""}
+                          {r.cancelReason ? ` · ${r.cancelReason}` : ""}
+                        </span>
+                      </span>
+                      <Badge tone="warning">환불 {r.cancelRequestRate}%</Badge>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           <h2 className="mb-3 text-lg font-semibold text-ink">오늘 수업</h2>
           {data.today.length === 0 ? (

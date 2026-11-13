@@ -9,6 +9,8 @@ import { MakeupsModule } from './modules/makeups/makeups.module';
 import { InquiriesModule } from './modules/inquiries/inquiries.module';
 import { ScheduleModule } from './modules/schedule/schedule.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { AskModule } from './modules/ask/ask.module';
+import { DocumentsModule } from './modules/documents/documents.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -24,6 +26,8 @@ import { PrismaModule } from './prisma/prisma.module';
     InquiriesModule,
     ScheduleModule,
     DashboardModule,
+    AskModule,
+    DocumentsModule,
     // 새 기능 모듈은 modules/{feature} 에 만들고 여기에 추가한다.
   ],
 })

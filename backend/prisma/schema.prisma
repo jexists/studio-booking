@@ -35,6 +35,7 @@ enum ReservationStatus {
   PENDING // 예약 신청
   CONFIRMED // 예약 확정
   CANCELLED
+  NO_SHOW // 노쇼 [가정] 수업 시작 후 직원이 표시, 환불 대상 아님
 }
 
 enum WorkStage {
@@ -125,48 +126,52 @@ model RegularCourse {
 }
 
 model ClassSession {
-  id             Int             @id @default(autoincrement())
-  code           String?         @unique // 엑셀 일정ID(S001) 등 가져온 자료의 원래 번호
-  program        ClassProgram
-  kind           ClassKind
-  title          String
-  startsAt       DateTime
-  endsAt         DateTime
-  capacity       Int
-  cancelled      Boolean         @default(false) // 휴강
-  courseId       Int?
-  course         RegularCourse?  @relation(fields: [courseId], references: [id])
-  weekNo         Int? // 정규반 1~4주차
-  memo           String?
-  reservations   Reservation[]
-  works          Work[]
-  missedMakeups  MakeupRequest[] @relation("MissedSession")
-  targetMakeups  MakeupRequest[] @relation("TargetSession")
+  id            Int             @id @default(autoincrement())
+  code          String?         @unique // 엑셀 일정ID(S001) 등 가져온 자료의 원래 번호
+  program       ClassProgram
+  kind          ClassKind
+  title         String
+  startsAt      DateTime
+  endsAt        DateTime
+  capacity      Int
+  cancelled     Boolean         @default(false) // 휴강
+  courseId      Int?
+  course        RegularCourse?  @relation(fields: [courseId], references: [id])
+  weekNo        Int? // 정규반 1~4주차
+  memo          String?
+  reservations  Reservation[]
+  works         Work[]
+  missedMakeups MakeupRequest[] @relation("MissedSession")
+  targetMakeups MakeupRequest[] @relation("TargetSession")
 
   @@index([startsAt])
 }
 
 model Reservation {
-  id            Int                @id @default(autoincrement())
-  reservationNo String             @unique
-  name          String
-  phone         String
-  phoneLast4    String
-  headcount     Int                @default(1)
-  channel       ReservationChannel
-  status        ReservationStatus  @default(PENDING)
-  sessionId     Int? // 원데이
-  session       ClassSession?      @relation(fields: [sessionId], references: [id])
-  courseId      Int? // 정규반 (sessionId·courseId 중 하나만)
-  course        RegularCourse?     @relation(fields: [courseId], references: [id])
-  confirmedAt   DateTime?
-  confirmedById Int?
-  cancelledAt   DateTime?
-  refundRate    Int? // 100 또는 50
-  memo          String?
-  createdAt     DateTime           @default(now())
-  works         Work[]
-  makeups       MakeupRequest[]
+  id                Int                @id @default(autoincrement())
+  reservationNo     String             @unique
+  name              String
+  phone             String
+  phoneLast4        String
+  headcount         Int                @default(1)
+  channel           ReservationChannel
+  status            ReservationStatus  @default(PENDING)
+  sessionId         Int? // 원데이
+  session           ClassSession?      @relation(fields: [sessionId], references: [id])
+  courseId          Int? // 정규반 (sessionId·courseId 중 하나만)
+  course            RegularCourse?     @relation(fields: [courseId], references: [id])
+  confirmedAt       DateTime?
+  confirmedById     Int?
+  cancelledAt       DateTime?
+  refundRate        Int? // 100 또는 50
+  cancelRequestedAt DateTime? // 수강생 취소·환불 요청 시각 (원데이만)
+  cancelRequestRate Int? // 요청 시점에 정한 환불 비율 100 또는 50
+  cancelReason      String? // 요청 사유 (선택, 200자)
+  noShowAt          DateTime?
+  memo              String?
+  createdAt         DateTime           @default(now())
+  works             Work[]
+  makeups           MakeupRequest[]
 
   @@index([sessionId])
   @@index([courseId])

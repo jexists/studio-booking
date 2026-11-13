@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { StaffGuard, type StaffRequest } from '../auth/auth.guard';
 import { CreateSessionDto, CreateWorksDto, StaffReservationDto, UpdateSessionDto, WeekQuery } from './dto';
 import { ScheduleService } from './schedule.service';
@@ -67,5 +67,29 @@ export class ScheduleController {
   @Patch('reservations/:id/cancel')
   cancel(@Param('id', ParseIntPipe) id: number) {
     return this.service.cancel(id);
+  }
+
+  // PATCH /api/staff/reservations/:id/cancel-request/approve  수강생 환불 요청 승인(요청 때 비율로 취소)
+  @Patch('reservations/:id/cancel-request/approve')
+  approveCancelRequest(@Param('id', ParseIntPipe) id: number) {
+    return this.service.approveCancelRequest(id);
+  }
+
+  // PATCH /api/staff/reservations/:id/cancel-request/reject  환불 요청 반려(요청 기록 삭제)
+  @Patch('reservations/:id/cancel-request/reject')
+  rejectCancelRequest(@Param('id', ParseIntPipe) id: number) {
+    return this.service.rejectCancelRequest(id);
+  }
+
+  // PATCH /api/staff/reservations/:id/no-show  [가정] 노쇼 표시(수업 시작 후, 원데이만)
+  @Patch('reservations/:id/no-show')
+  noShow(@Param('id', ParseIntPipe) id: number) {
+    return this.service.markNoShow(id);
+  }
+
+  // DELETE /api/staff/reservations/:id/no-show  노쇼 되돌리기(확정으로)
+  @Delete('reservations/:id/no-show')
+  undoNoShow(@Param('id', ParseIntPipe) id: number) {
+    return this.service.undoNoShow(id);
   }
 }

@@ -96,6 +96,12 @@ export class WorksService {
     if (!to) throw new BadRequestException(direction === 'next' ? '이미 마지막 단계예요' : '첫 단계예요');
     if (direction === 'next' && w.broken) throw new BadRequestException('파손된 작품은 단계를 넘길 수 없어요');
     if (to === 'PICKED_UP' && !w.pickupMethod) throw new BadRequestException('수령 방식을 먼저 정해 주세요');
+    // 택배 작품은 배송완료가 돼야 수령으로 넘긴다
+    if (to === 'PICKED_UP' && w.pickupMethod === 'DELIVERY' && w.shipStatus !== 'DELIVERED')
+      throw new BadRequestException('택배 작품은 배송완료 뒤에 수령으로 넘길 수 있어요');
+    // 이미 발송한 작품은 완성 이전 단계로 되돌리지 않는다
+    if (direction === 'prev' && w.stage === 'DONE' && (w.shipStatus === 'SHIPPING' || w.shipStatus === 'DELIVERED'))
+      throw new BadRequestException('이미 발송한 작품은 완성 이전으로 되돌릴 수 없어요');
     const now = new Date();
     const data: Prisma.WorkUpdateInput = { stage: to, stageChangedAt: now };
     if (to === 'DONE' && direction === 'next') data.completedAt = now;

@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma, Staff } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { INQUIRY_STATUSES, type CreateInquiryDto, type InquiryStatusValue, type UpdateInquiryDto } from './dto';
@@ -9,6 +9,10 @@ export class InquiriesService {
 
   // PUB-07 접수. 상태는 '문의'(NEW)로 시작한다.
   async create(dto: CreateInquiryDto) {
+    if (dto.preferredDate) {
+      const today = new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10); // KST 오늘
+      if (dto.preferredDate < today) throw new BadRequestException('희망 날짜는 오늘 이후로 골라 주세요');
+    }
     const row = await this.prisma.groupInquiry.create({
       data: {
         orgName: dto.orgName,

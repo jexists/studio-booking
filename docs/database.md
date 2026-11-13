@@ -22,7 +22,7 @@ DATABASE_URL=postgresql://USER:PASSWORD@HOST/DBNAME?schema=hackathon&sslmode=req
 | StaffSession | 로그인 토큰 | token, staffId, expiresAt |
 | RegularCourse | 정규반 한 기수 | name("화 물레반 11월기"), kind, capacity, startDate |
 | ClassSession | 수업 한 회 | code(S001), program(ONEDAY/REGULAR), kind(HAND 8/WHEEL 6), startsAt, endsAt, capacity, cancelled(휴강), courseId, weekNo |
-| Reservation | 예약(원데이는 sessionId, 정규반은 courseId) | reservationNo, name, phone, phoneLast4, headcount, channel, status(PENDING/CONFIRMED/CANCELLED), refundRate |
+| Reservation | 예약(원데이는 sessionId, 정규반은 courseId) | reservationNo, name, phone, phoneLast4, headcount, channel, status(PENDING/CONFIRMED/CANCELLED/NO_SHOW), refundRate, cancelRequestedAt·cancelRequestRate·cancelReason(수강생 환불 요청, 원데이), noShowAt([가정] 노쇼) |
 | Work | 작품 | workNo(W260902-01), reservationId, sessionId, classDate, ownerName, clay, glaze, stage(6단계), broken, shelf, pickupMethod, completedAt |
 | WorkStageLog | 단계 변경 기록 | workId, fromStage, toStage, staffId |
 | MakeupRequest | 보강 신청 | reservationId, missedSessionId, targetSessionId, status |

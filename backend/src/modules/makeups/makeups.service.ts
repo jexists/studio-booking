@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { Prisma, type MakeupStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { CreateMakeupDto, MAKEUP_FILTERS } from './dto';
+import { checkOwner } from '../../common/owner-check';
 
 const ACTIVE = ['PENDING', 'CONFIRMED'] as const; // 정원 계산 대상(기획 A-01)
 const KST = 9 * 3600000;
@@ -58,7 +59,8 @@ export class MakeupsService {
   // 예약 번호 + 뒤 4자리 확인. 틀리면 어느 쪽이 틀렸는지 알려 주지 않는다(me.service 와 같은 문구).
   private async owner(db: Db, reservationNo: string, phoneLast4: string) {
     const r = await db.reservation.findUnique({ where: { reservationNo: reservationNo.trim() }, include: { course: true } });
-    if (!r || r.phoneLast4 !== phoneLast4) throw new NotFoundException(NOT_FOUND);
+    checkOwner(r, reservationNo, phoneLast4);
+    if (!r) throw new NotFoundException(NOT_FOUND);
     if (!r.course) throw new BadRequestException('정규반 예약만 보강을 신청할 수 있어요');
     if (r.status === 'CANCELLED') throw new BadRequestException('취소된 예약이에요');
     return { ...r, course: r.course };

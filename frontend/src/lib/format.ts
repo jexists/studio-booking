@@ -25,3 +25,9 @@ export function formatPhone(v: string) {
   if (d.length < 8) return `${d.slice(0, 3)}-${d.slice(3)}`;
   return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
 }
+
+// 올해가 아니면 연도까지 (예: 2027. 1. 5.)
+export function fmtDateYear(d: string | Date) {
+  const sameYear = dayKey(d).slice(0, 4) === dayKey(new Date()).slice(0, 4);
+  return new Intl.DateTimeFormat("ko-KR", { ...tz, ...(sameYear ? {} : { year: "numeric" }), month: "numeric", day: "numeric" }).format(new Date(d));
+}

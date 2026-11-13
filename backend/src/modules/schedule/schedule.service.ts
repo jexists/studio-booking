@@ -230,6 +230,10 @@ export class ScheduleService {
       channel: r.channel,
       status: r.status,
       refundRate: r.refundRate,
+      cancelRequestedAt: r.status === 'PENDING' || r.status === 'CONFIRMED' ? r.cancelRequestedAt : null, // 처리 대기 중인 환불 요청
+      cancelRequestRate: r.cancelRequestRate,
+      cancelReason: r.cancelReason,
+      noShowAt: r.noShowAt,
       memo: r.memo,
       flag, // MAKEUP_IN: 보강으로 들어옴, MOVED_OUT: 이 회차를 빠지고 보강 감
       worksCount: worksBy.get(r.id) ?? 0,
@@ -274,12 +278,13 @@ export class ScheduleService {
   // 직원 대리 등록(DM·네이버). 공개 신청과 같이 일정 행을 잠그고 정원을 다시 센다.
   async addReservation(sessionId: number, dto: StaffReservationDto, staffId: number) {
     return this.prisma.$transaction(async (tx) => {
-      const locked = await tx.$queryRaw<{ id: number; capacity: number; cancelled: boolean; program: string }[]>(
-        Prisma.sql`SELECT id, capacity, cancelled, program::text FROM "ClassSession" WHERE id = ${sessionId} FOR UPDATE`,
+      const locked = await tx.$queryRaw<{ id: number; capacity: number; cancelled: boolean; program: string; startsAt: Date }[]>(
+        Prisma.sql`SELECT id, capacity, cancelled, program::text, "startsAt" FROM "ClassSession" WHERE id = ${sessionId} FOR UPDATE`,
       );
       const s = locked[0];
       if (!s) throw new NotFoundException('일정을 찾을 수 없어요');
       if (s.program !== 'ONEDAY') throw new BadRequestException('정규반은 여기서 등록할 수 없어요');
+      if (s.startsAt < new Date()) throw new BadRequestException('지난 수업에는 예약을 등록할 수 없어요');
       if (s.cancelled) throw new BadRequestException('휴강한 수업이에요');
       if (!dto.force) {
         const dup = await tx.reservation.findFirst({ where: { sessionId: s.id, phone: dto.phone, status: { in: [...ACTIVE] } } });
@@ -335,11 +340,54 @@ export class ScheduleService {
   async cancel(id: number) {
     const { r, refundRate } = await this.refundOf(id);
     if (r.status === 'CANCELLED') throw new BadRequestException('이미 취소된 예약이에요');
+    if (r.status === 'NO_SHOW') throw new BadRequestException('노쇼를 먼저 되돌려 주세요');
     const u = await this.prisma.reservation.update({
       where: { id },
       data: { status: 'CANCELLED', cancelledAt: new Date(), refundRate },
     });
     return { id: u.id, status: u.status, refundRate: u.refundRate };
+  }
+
+  // 수강생 환불 요청 승인: 요청 때 정한 비율로 취소한다.
+  async approveCancelRequest(id: number) {
+    const r = await this.prisma.reservation.findUnique({ where: { id } });
+    if (!r) throw new NotFoundException('예약을 찾을 수 없어요');
+    if (!r.cancelRequestedAt || (r.status !== 'PENDING' && r.status !== 'CONFIRMED')) throw new BadRequestException('처리할 환불 요청이 없어요');
+    const { count } = await this.prisma.reservation.updateMany({
+      where: { id, status: { in: [...ACTIVE] }, cancelRequestedAt: { not: null } },
+      data: { status: 'CANCELLED', cancelledAt: new Date(), refundRate: r.cancelRequestRate },
+    });
+    if (count === 0) throw new BadRequestException('처리할 환불 요청이 없어요');
+    return { id, status: 'CANCELLED' as const, refundRate: r.cancelRequestRate };
+  }
+
+  // 환불 요청 반려: 요청 기록만 지운다(예약은 그대로).
+  async rejectCancelRequest(id: number) {
+    const r = await this.prisma.reservation.findUnique({ where: { id } });
+    if (!r) throw new NotFoundException('예약을 찾을 수 없어요');
+    if (!r.cancelRequestedAt || (r.status !== 'PENDING' && r.status !== 'CONFIRMED')) throw new BadRequestException('처리할 환불 요청이 없어요');
+    await this.prisma.reservation.update({ where: { id }, data: { cancelRequestedAt: null, cancelRequestRate: null, cancelReason: null } });
+    return { id, status: r.status };
+  }
+
+  // [가정] 노쇼: 원데이 수업이 시작된 뒤에만 표시. 환불 계산 안 함.
+  async markNoShow(id: number) {
+    const r = await this.prisma.reservation.findUnique({ where: { id }, include: { session: { select: { startsAt: true } } } });
+    if (!r) throw new NotFoundException('예약을 찾을 수 없어요');
+    if (!r.session) throw new BadRequestException('정규반은 노쇼로 표시하지 않아요');
+    if (r.status !== 'PENDING' && r.status !== 'CONFIRMED') throw new BadRequestException('신청·확정 예약만 노쇼로 표시할 수 있어요');
+    if (r.session.startsAt.getTime() > Date.now()) throw new BadRequestException('수업이 시작된 뒤에 표시할 수 있어요');
+    if (r.cancelRequestedAt) throw new BadRequestException('환불 요청을 먼저 처리해 주세요');
+    const u = await this.prisma.reservation.update({ where: { id }, data: { status: 'NO_SHOW', noShowAt: new Date() } });
+    return { id: u.id, status: u.status, noShowAt: u.noShowAt };
+  }
+
+  async undoNoShow(id: number) {
+    const r = await this.prisma.reservation.findUnique({ where: { id } });
+    if (!r) throw new NotFoundException('예약을 찾을 수 없어요');
+    if (r.status !== 'NO_SHOW') throw new BadRequestException('노쇼 예약이 아니에요');
+    const u = await this.prisma.reservation.update({ where: { id }, data: { status: 'CONFIRMED', noShowAt: null } });
+    return { id: u.id, status: u.status };
   }
 
   // 작품 등록: 번호 W{수업일 YYMMDD}-{순번 2자리}, 같은 날짜의 마지막 순번 다음부터

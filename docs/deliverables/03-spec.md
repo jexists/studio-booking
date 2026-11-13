@@ -111,6 +111,7 @@
 | 완성 후 | 완성일, 보관 기한(완성일+60일), 수령 방식(방문/택배/미정) [확인] R-07 |
 | 식기 경고 | 유약 코드가 **장식용 유약 목록**에 있으면 경고 표시 (P-06, 아래 5절) |
 | 보강 | 정규반 예약이고 결석 처리 가능한 회차가 있으면 버튼 노출 |
+| 취소·환불 요청 | 원데이·신청/확정·수업 전·요청 없음이면 [취소·환불 요청] → 확인창에 예상 환불(100/50%)·규정·사유(선택, 200자). 요청 후 "환불 요청 접수 · 예상 환불 N%", 승인 후 "취소 완료 · 환불 N%" (R-03) |
 
 ### PUB-05 보강 신청 (PUB-04의 하단 시트)
 1. 결석할(한) 회차 선택: 내 반의 4회차 중 아직 지나지 않았거나 이번 주인 회차
@@ -193,6 +194,8 @@
 | 중복 경고 | 같은 일정에 같은 휴대폰 번호가 이미 있으면 "중복 예약 같아요" 확인창 (엑셀의 DM·네이버 중복 3건 대응) [제안] |
 | 확정 | 신청→확정. 확정 시각·처리한 직원 기록 |
 | 취소 | 원데이: 환불 비율 미리 보여 주고 확인 (R-03). 정규반 취소는 비율 없이 취소만 |
+| 환불 요청 처리 | 수강생 요청이 있으면 "환불 요청 N%" 배지 + [환불 요청 처리] → 승인·취소(요청 때 비율) / 반려(요청 지움) |
+| 노쇼 [가정] | 원데이 수업 시작 후 신청·확정 예약에 [노쇼]. 노쇼는 "환불 대상 아님", [노쇼 되돌리기]로 확정 복귀 |
 | 작품 등록 | 확정 예약자 목록 → 사람마다 작품 수(0~5)·작품명(컵/접시…)·흙·유약 선택 → 번호 자동 생성 `W{수업일 YYMMDD}-{순번 2자리}` (엑셀 형식과 같음) |
 
 ### STF-06 작품 목록 `/staff/works`
@@ -256,7 +259,7 @@ erDiagram
 | **StaffSession** | id, token(유일), staffId, expiresAt | 로그인 토큰 (7일) |
 | **RegularCourse** | id, name("화 물레반 11월기"), kind(`HAND`/`WHEEL`), capacity, startDate | 정규반 한 기수 |
 | **ClassSession** | id, program(`ONEDAY`/`REGULAR`), kind(`HAND`/`WHEEL`), startsAt, endsAt, capacity(8/6), title, courseId?, weekNo(1~4)?, cancelled(휴강) | 수업 한 회. capacity는 kind로 결정 |
-| **Reservation** | id, reservationNo(유일), name, phone, phoneLast4, headcount, channel(`WEB`/`DM`/`NAVER`), status(`PENDING`/`CONFIRMED`/`CANCELLED`), sessionId?(원데이), courseId?(정규반), confirmedAt, confirmedById, cancelledAt, refundRate, memo, createdAt | sessionId·courseId 중 **정확히 하나** |
+| **Reservation** | id, reservationNo(유일), name, phone, phoneLast4, headcount, channel(`WEB`/`DM`/`NAVER`), status(`PENDING`/`CONFIRMED`/`CANCELLED`/`NO_SHOW`), sessionId?(원데이), courseId?(정규반), confirmedAt, confirmedById, cancelledAt, refundRate, cancelRequestedAt, cancelRequestRate, cancelReason, noShowAt, memo, createdAt | sessionId·courseId 중 **정확히 하나** |
 | **Work** | id, workNo(유일), reservationId?, sessionId, ownerName, phoneLast4, itemName, clayCode, glazeCode, stage(6종), broken, shelf, pickupMethod(`VISIT`/`DELIVERY`/null), completedAt, stageChangedAt, memo | reservationId 없는 작품 허용(엑셀에서 수강생 `?` 2점 = 이름표 분실) |
 | **WorkStageLog** | id, workId, fromStage, toStage, staffId, createdAt | 01 U-04 "변경 시각 기록" |
 | **MakeupRequest** | id, reservationId(정규반), missedSessionId, targetSessionId, status(`REQUESTED`/`APPROVED`/`REJECTED`), rejectReason, decidedById, decidedAt, createdAt | |
@@ -279,6 +282,8 @@ erDiagram
 | 정원 계산 대상 | A-01 | 같은 함수: `PENDING`+`CONFIRMED` (취소 제외) | |
 | 정규반 회차 인원 | A-05, R-08 | 반 등록 인원 + 그 회차로 승인된 보강 − 그 회차를 빠지고 보강 간 인원 [가정 B-03] | STF-07 |
 | 원데이 환불 비율 | R-03 | `ReservationsService.cancel`: 수업 날짜 − 취소 날짜 ≥ 3일이면 100, 아니면 50 (날짜 기준, 시간 무시) [가정 B-04] | STF-05 취소 확인창 |
+| 수강생 취소·환불 요청 | R-03 | `MeService.requestCancel`: 원데이·신청/확정·수업 시작 전·대기 중 요청 없음일 때만. 요청한 날 기준으로 100/50을 정해 저장(`cancelRequestRate`), 취소는 `ScheduleService.approveCancelRequest`에서 그 비율로. 반려는 요청 칼럼만 비움. 정규반 400 | PUB-04 [취소·환불 요청] 확인창(예상 환불·규정), "환불 요청 접수 · 예상 환불 N%" → "취소 완료 · 환불 N%" / STF-05 "환불 요청 N%" 배지·처리 창 / STF-03 환불 요청 목록 |
+| 노쇼 | [가정] 고객 기준 없음 | `ScheduleService.markNoShow`: 원데이·신청/확정·수업 시작 후만(이전 400), 대기 중 환불 요청 있으면 400. `undoNoShow`로 확정 복귀. 노쇼는 환불 계산 안 함, 환불 요청·취소 불가, 정원 계산에서 제외 | STF-05 [노쇼]·[노쇼 되돌리기], "환불 대상 아님" / PUB-04 "노쇼 · 환불 대상 아님" / STF-03 오늘 노쇼 수 |
 | 단계 한 칸씩, 되돌리기 한 칸 | A-04 | `WorksService.changeStage` | STF-06 |
 | 수령은 수령 방식이 있어야 | 추가 인터뷰 | 같은 함수 | STF-06 |
 | 완성 예상 범위 | R-06 | `WorksService` 응답에 계산값 포함 (수업일+21~28일) | PUB-04 |
@@ -449,6 +454,7 @@ erDiagram
 | B-03 | 정규반 회차 인원 = 반 등록 인원 + 들어온 보강 − 나간 보강 | 승인 |
 | B-04 | "3일 전까지"는 날짜 기준 (11/15 수업이면 11/12까지 취소 시 전액) | 승인 |
 | B-05 | 메일 발송은 Resend(본인 이메일로 시연) + 링크 복사 | 승인 |
+| B-06 | **[가정] 노쇼**: 고객 기준 없음. 원데이 수업 시작 후 직원이 표시, 환불 대상 아님, 되돌리기 가능, 정규반은 표시 안 함 | 확인 필요 |
 | P-06 | **[제안, 가산점]** 장식용 유약을 쓴 작품에 "식기로 쓰지 마세요" 표시 — 근거: 권 강사 "장식용 유약을 쓴 작품은 식기로 사용하면 안 된다고 안내해야" + 작품 목록에 숨은 장식용 유약 컵·볼 | 승인 |
 
 질문

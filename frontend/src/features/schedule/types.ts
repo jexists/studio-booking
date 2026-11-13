@@ -4,7 +4,7 @@ import { toast } from "@/lib/notify";
 
 export type Program = "ONEDAY" | "REGULAR";
 export type Kind = "HAND" | "WHEEL";
-export type ResStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
+export type ResStatus = "PENDING" | "CONFIRMED" | "CANCELLED" | "NO_SHOW";
 
 export type SessionRow = {
   id: number;
@@ -30,6 +30,10 @@ export type RosterItem = {
   channel: "WEB" | "DM" | "NAVER";
   status: ResStatus;
   refundRate: number | null;
+  cancelRequestedAt: string | null; // 처리 대기 중인 수강생 환불 요청
+  cancelRequestRate: number | null;
+  cancelReason: string | null;
+  noShowAt: string | null;
   memo: string | null;
   flag: "MAKEUP_IN" | "MOVED_OUT" | null;
   worksCount: number;
@@ -43,7 +47,7 @@ export type SessionDetail = SessionRow & {
 export const PROGRAM_LABEL: Record<Program, string> = { ONEDAY: "원데이", REGULAR: "정규반" };
 export const KIND_LABEL: Record<Kind, string> = { HAND: "일반", WHEEL: "물레" };
 export const CAPACITY: Record<Kind, number> = { HAND: 8, WHEEL: 6 };
-export const STATUS_LABEL: Record<ResStatus, string> = { PENDING: "신청", CONFIRMED: "확정", CANCELLED: "취소" };
+export const STATUS_LABEL: Record<ResStatus, string> = { PENDING: "신청", CONFIRMED: "확정", CANCELLED: "취소", NO_SHOW: "노쇼" };
 export const CHANNEL_LABEL = { WEB: "웹", DM: "DM", NAVER: "네이버" } as const;
 
 export function sessionName(s: Pick<SessionRow, "program" | "title" | "courseName" | "weekNo">) {

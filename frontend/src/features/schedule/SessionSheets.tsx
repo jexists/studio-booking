@@ -6,7 +6,7 @@ import { Notice } from "@/components/ui/Card";
 import { Field, Input, Select } from "@/components/ui/Field";
 import { Modal, Sheet } from "@/components/ui/Overlay";
 import { api, ApiError } from "@/lib/api";
-import { fmtTime, formatPhone } from "@/lib/format";
+import { fmtDay, fmtTime, formatPhone } from "@/lib/format";
 import { toast } from "@/lib/notify";
 import { CHANNEL_LABEL, toastError, type RosterItem, type SessionDetail } from "./types";
 
@@ -181,6 +181,55 @@ export function CancelModal({ target, onClose, onDone }: { target: RosterItem | 
           ) : (
             <Notice>{rate === 100 ? "수업 3일 전이라 전액 환불이에요." : "수업 3일 전이 지나 50% 환불이에요."}</Notice>
           )}
+        </div>
+      )}
+    </Modal>
+  );
+}
+
+// 수강생 환불 요청 처리: 승인하면 요청 때 정한 비율로 취소, 반려하면 요청만 지운다.
+export function CancelRequestModal({ target, onClose, onDone }: { target: RosterItem | null; onClose: () => void; onDone: () => void }) {
+  const [saving, setSaving] = useState<"approve" | "reject" | null>(null);
+
+  const decide = async (action: "approve" | "reject") => {
+    if (!target) return;
+    setSaving(action);
+    try {
+      await api(`/staff/reservations/${target.id}/cancel-request/${action}`, { method: "PATCH" });
+      toast(action === "approve" ? `취소했어요 (${target.cancelRequestRate}% 환불)` : "환불 요청을 반려했어요", "success");
+      onDone();
+      onClose();
+    } catch (e) {
+      toastError(e);
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  return (
+    <Modal
+      open={!!target}
+      onClose={onClose}
+      title="환불 요청"
+      footer={
+        <>
+          <Button variant="secondary" size="sm" loading={saving === "reject"} disabled={!!saving} onClick={() => decide("reject")}>
+            반려
+          </Button>
+          <Button variant="destructive" size="sm" loading={saving === "approve"} disabled={!!saving} onClick={() => decide("approve")}>
+            승인·취소
+          </Button>
+        </>
+      }
+    >
+      {target && (
+        <div className="flex flex-col gap-3">
+          <p>
+            {target.name} 님 · {target.headcount}명 · {CHANNEL_LABEL[target.channel]}
+          </p>
+          <p className="tabular text-lg font-semibold">환불 {target.cancelRequestRate}%</p>
+          {target.cancelRequestedAt && <p className="tabular text-sm text-muted">요청 {fmtDay(target.cancelRequestedAt)} {fmtTime(target.cancelRequestedAt)}</p>}
+          {target.cancelReason && <p className="text-sm">{target.cancelReason}</p>}
         </div>
       )}
     </Modal>

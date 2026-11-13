@@ -22,7 +22,7 @@ type Hit = {
   startsAt: string | null;
 };
 
-const TONE = { PENDING: "warning", CONFIRMED: "success", CANCELLED: "neutral" } as const;
+const TONE = { PENDING: "warning", CONFIRMED: "success", CANCELLED: "neutral", NO_SHOW: "error" } as const;
 
 // 예약번호·전화번호(일부 가능)·이름으로 신청 내역을 바로 찾는다.
 export function ReservationSearch() {

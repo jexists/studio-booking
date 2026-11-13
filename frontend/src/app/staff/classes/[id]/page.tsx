@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { BackLink, EmptyState, Skeleton } from "@/components/ui/PageTitle";
 import { stageLabel } from "@/components/ui/StageBar";
-import { CancelModal, EditSessionSheet, ReservationSheet, WorksSheet } from "@/features/schedule/SessionSheets";
+import { CancelModal, CancelRequestModal, EditSessionSheet, ReservationSheet, WorksSheet } from "@/features/schedule/SessionSheets";
 import {
   CHANNEL_LABEL,
   KIND_LABEL,
@@ -29,6 +29,7 @@ export default function StaffClassDetailPage() {
   const [missing, setMissing] = useState(false);
   const [sheet, setSheet] = useState<"reserve" | "works" | "edit" | null>(null);
   const [cancelTarget, setCancelTarget] = useState<RosterItem | null>(null);
+  const [requestTarget, setRequestTarget] = useState<RosterItem | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
 
   const load = useCallback(() => {
@@ -54,6 +55,20 @@ export default function StaffClassDetailPage() {
     }
   };
 
+  // [가정] 노쇼 표시·되돌리기
+  const noShow = async (r: RosterItem, undo: boolean) => {
+    setBusyId(r.id);
+    try {
+      await api(`/staff/reservations/${r.id}/no-show`, { method: undo ? "DELETE" : "PATCH" });
+      toast(undo ? `${r.name} 님 노쇼를 되돌렸어요` : `${r.name} 님을 노쇼로 표시했어요`, "success");
+      load();
+    } catch (e) {
+      toastError(e);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   if (!s) {
     return (
       <>
@@ -71,6 +86,7 @@ export default function StaffClassDetailPage() {
   }
 
   const oneday = s.program === "ONEDAY";
+  const started = new Date(s.startsAt).getTime() <= Date.now();
 
   return (
     <>
@@ -120,26 +136,46 @@ export default function StaffClassDetailPage() {
                 <li key={`${r.id}-${r.flag ?? ""}`} className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line px-4 py-3 last:border-0">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <span className={`font-semibold ${r.status === "CANCELLED" || r.flag === "MOVED_OUT" ? "text-muted" : ""}`}>{r.name}</span>
+                      <span className={`font-semibold ${r.status === "CANCELLED" || r.status === "NO_SHOW" || r.flag === "MOVED_OUT" ? "text-muted" : ""}`}>{r.name}</span>
                       <Badge tone={statusTone[label]}>
                         {label}
                         {r.status === "CANCELLED" && r.refundRate ? ` (${r.refundRate === 100 ? "전액" : "50%"})` : ""}
                       </Badge>
+                      {r.cancelRequestedAt && <Badge tone={statusTone["환불 요청"]}>환불 요청 {r.cancelRequestRate}%</Badge>}
                       {r.flag === "MAKEUP_IN" && <Badge tone="accent">보강</Badge>}
                       {r.flag === "MOVED_OUT" && <Badge>보강 감</Badge>}
                     </div>
                     <p className="tabular mt-1 text-sm text-muted">
                       {r.reservationNo} · {r.headcount}명 · {CHANNEL_LABEL[r.channel]} · {r.phone}
                       {r.worksCount > 0 ? ` · 작품 ${r.worksCount}점` : ""}
+                      {r.status === "NO_SHOW" ? " · 환불 대상 아님" : ""}
                     </p>
                     {r.memo && <p className="mt-1 text-sm">{r.memo}</p>}
                   </div>
-                  {r.status !== "CANCELLED" && r.flag !== "MAKEUP_IN" && (
-                    <div className="flex gap-2">
-                      {r.status === "PENDING" && (
-                        <Button size="sm" loading={busyId === r.id} onClick={() => confirm(r)}>
-                          확정
+                  {r.status === "NO_SHOW" && (
+                    <Button size="sm" variant="secondary" loading={busyId === r.id} onClick={() => noShow(r, true)}>
+                      노쇼 되돌리기
+                    </Button>
+                  )}
+                  {(r.status === "PENDING" || r.status === "CONFIRMED") && r.flag !== "MAKEUP_IN" && (
+                    <div className="flex flex-wrap gap-2">
+                      {r.cancelRequestedAt ? (
+                        <Button size="sm" disabled={busyId === r.id} onClick={() => setRequestTarget(r)}>
+                          환불 요청 처리
                         </Button>
+                      ) : (
+                        <>
+                          {r.status === "PENDING" && (
+                            <Button size="sm" loading={busyId === r.id} onClick={() => confirm(r)}>
+                              확정
+                            </Button>
+                          )}
+                          {oneday && started && (
+                            <Button size="sm" variant="secondary" disabled={busyId === r.id} onClick={() => noShow(r, false)}>
+                              노쇼
+                            </Button>
+                          )}
+                        </>
                       )}
                       <Button size="sm" variant="destructive" disabled={busyId === r.id} onClick={() => setCancelTarget(r)}>
                         취소
@@ -184,6 +220,7 @@ export default function StaffClassDetailPage() {
       <WorksSheet open={sheet === "works"} onClose={() => setSheet(null)} session={s} onDone={load} />
       <EditSessionSheet open={sheet === "edit"} onClose={() => setSheet(null)} session={s} onDone={load} />
       <CancelModal target={cancelTarget} onClose={() => setCancelTarget(null)} onDone={load} />
+      <CancelRequestModal target={requestTarget} onClose={() => setRequestTarget(null)} onDone={load} />
     </>
   );
 }

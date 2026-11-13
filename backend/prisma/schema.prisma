@@ -1,0 +1,289 @@
+// Prisma 스키마. 설계 근거: docs/deliverables/03-spec.md 3절. 변경 시 docs/database.md 도 갱신한다.
+// 벡터 검색(pgvector)은 Prisma가 타입을 몰라 Unsupported 로 두고, 저장·검색은 SQL($queryRaw)로 한다.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum StaffRole {
+  OWNER // 대표
+  STAFF // 강사
+}
+
+enum ClassProgram {
+  ONEDAY
+  REGULAR
+}
+
+enum ClassKind {
+  HAND // 일반(핸드빌딩) 정원 8
+  WHEEL // 물레 정원 6
+}
+
+enum ReservationChannel {
+  WEB
+  DM
+  NAVER
+}
+
+enum ReservationStatus {
+  PENDING // 예약 신청
+  CONFIRMED // 예약 확정
+  CANCELLED
+}
+
+enum WorkStage {
+  FORMING // 성형
+  BISQUE // 초벌
+  GLAZED // 유약
+  GLAZE_FIRED // 재벌
+  DONE // 완성
+  PICKED_UP // 수령
+}
+
+enum PickupMethod {
+  VISIT
+  DELIVERY
+}
+
+enum ShipStatus {
+  PREPARING // 택배 준비중
+  SHIPPING // 배송중 (송장 입력됨)
+  DELIVERED // 배송완료
+}
+
+enum MakeupStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+}
+
+enum DocumentKind {
+  SUPPLIER // 공급처 자료
+  NOTE // 수업 노트
+}
+
+enum DocumentStatus {
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum InquiryStatus {
+  NEW // 문의
+  QUOTED // 견적 발송
+  CONFIRMED // 확정
+  DONE // 완료
+  CANCELLED
+}
+
+model Staff {
+  id           Int            @id @default(autoincrement())
+  email        String         @unique
+  name         String
+  role         StaffRole      @default(STAFF)
+  passwordHash String?
+  active       Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  invites      StaffInvite[]
+  sessions     StaffSession[]
+}
+
+model StaffInvite {
+  id          Int       @id @default(autoincrement())
+  email       String
+  token       String    @unique
+  invitedById Int
+  invitedBy   Staff     @relation(fields: [invitedById], references: [id])
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+model StaffSession {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  staffId   Int
+  staff     Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model RegularCourse {
+  id           Int            @id @default(autoincrement())
+  name         String         @unique // 예: "화 물레반 11월기"
+  kind         ClassKind
+  capacity     Int
+  startDate    DateTime
+  sessions     ClassSession[]
+  reservations Reservation[]
+}
+
+model ClassSession {
+  id             Int             @id @default(autoincrement())
+  code           String?         @unique // 엑셀 일정ID(S001) 등 가져온 자료의 원래 번호
+  program        ClassProgram
+  kind           ClassKind
+  title          String
+  startsAt       DateTime
+  endsAt         DateTime
+  capacity       Int
+  cancelled      Boolean         @default(false) // 휴강
+  courseId       Int?
+  course         RegularCourse?  @relation(fields: [courseId], references: [id])
+  weekNo         Int? // 정규반 1~4주차
+  memo           String?
+  reservations   Reservation[]
+  works          Work[]
+  missedMakeups  MakeupRequest[] @relation("MissedSession")
+  targetMakeups  MakeupRequest[] @relation("TargetSession")
+
+  @@index([startsAt])
+}
+
+model Reservation {
+  id            Int                @id @default(autoincrement())
+  reservationNo String             @unique
+  name          String
+  phone         String
+  phoneLast4    String
+  headcount     Int                @default(1)
+  channel       ReservationChannel
+  status        ReservationStatus  @default(PENDING)
+  sessionId     Int? // 원데이
+  session       ClassSession?      @relation(fields: [sessionId], references: [id])
+  courseId      Int? // 정규반 (sessionId·courseId 중 하나만)
+  course        RegularCourse?     @relation(fields: [courseId], references: [id])
+  confirmedAt   DateTime?
+  confirmedById Int?
+  cancelledAt   DateTime?
+  refundRate    Int? // 100 또는 50
+  memo          String?
+  createdAt     DateTime           @default(now())
+  works         Work[]
+  makeups       MakeupRequest[]
+
+  @@index([sessionId])
+  @@index([courseId])
+}
+
+model Work {
+  id             Int            @id @default(autoincrement())
+  workNo         String         @unique // W{YYMMDD}-{순번}
+  reservationId  Int?
+  reservation    Reservation?   @relation(fields: [reservationId], references: [id])
+  sessionId      Int?
+  session        ClassSession?  @relation(fields: [sessionId], references: [id])
+  classDate      DateTime // 만든 수업 날짜 (완성 예상 범위 계산 기준)
+  ownerName      String // 이름표 분실 시 "?"
+  phoneLast4     String?
+  itemName       String
+  clay           String? // 예: "ST-W110 백자토(일반)"
+  glaze          String? // 예: "OG-C22 산화청자유"
+  stage          WorkStage      @default(FORMING)
+  broken         Boolean        @default(false)
+  shelf          String?
+  pickupMethod   PickupMethod?
+  shipStatus     ShipStatus? // 택배일 때만
+  carrier        String? // CJ·POST·HANJIN·LOTTE·LOGEN
+  trackingNo     String?
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
+  completedAt    DateTime?
+  pickedUpAt     DateTime?
+  stageChangedAt DateTime       @default(now())
+  memo           String?
+  createdAt      DateTime       @default(now())
+  stageLogs      WorkStageLog[]
+
+  @@index([stage])
+  @@index([classDate])
+}
+
+model WorkStageLog {
+  id        Int       @id @default(autoincrement())
+  workId    Int
+  work      Work      @relation(fields: [workId], references: [id], onDelete: Cascade)
+  fromStage WorkStage
+  toStage   WorkStage
+  staffId   Int?
+  createdAt DateTime  @default(now())
+}
+
+model MakeupRequest {
+  id              Int          @id @default(autoincrement())
+  reservationId   Int
+  reservation     Reservation  @relation(fields: [reservationId], references: [id])
+  missedSessionId Int
+  missedSession   ClassSession @relation("MissedSession", fields: [missedSessionId], references: [id])
+  targetSessionId Int
+  targetSession   ClassSession @relation("TargetSession", fields: [targetSessionId], references: [id])
+  status          MakeupStatus @default(REQUESTED)
+  rejectReason    String?
+  decidedById     Int?
+  decidedAt       DateTime?
+  createdAt       DateTime     @default(now())
+}
+
+model Document {
+  id           Int             @id @default(autoincrement())
+  title        String
+  kind         DocumentKind
+  fileName     String
+  pageCount    Int             @default(0)
+  status       DocumentStatus  @default(PROCESSING)
+  error        String?
+  uploadedById Int?
+  createdAt    DateTime        @default(now())
+  chunks       DocumentChunk[]
+}
+
+model DocumentChunk {
+  id         Int                          @id @default(autoincrement())
+  documentId Int
+  document   Document                     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  page       Int
+  content    String
+  embedding  Unsupported("vector(1536)")?
+
+  @@index([documentId])
+}
+
+model QuestionLog {
+  id          Int      @id @default(autoincrement())
+  question    String
+  answer      String
+  language    String
+  isSafety    Boolean
+  hasEvidence Boolean
+  sources     Json
+  createdAt   DateTime @default(now())
+}
+
+model GroupInquiry {
+  id            Int           @id @default(autoincrement())
+  orgName       String
+  contactName   String
+  contact       String // 연락처 또는 접수 채널
+  preferredDate DateTime?
+  headcount     Int
+  place         String?
+  message       String
+  status        InquiryStatus @default(NEW)
+  quoteAmount   Int?
+  memo          String?
+  createdAt     DateTime      @default(now())
+}
+
+// 식기로 쓰면 안 되는 흙·유약 코드 (P-06). 근거 자료 위치를 함께 둔다.
+model GlazeWarning {
+  code      String @id // 예: "LF-190"
+  name      String
+  reason    String
+  sourceRef String
+}

@@ -1,0 +1,13 @@
+{
+  "name": "hackathon",
+  "private": true,
+  "scripts": {
+    "postinstall": "node scripts/init-env.mjs",
+    "dev": "pnpm --parallel --filter frontend --filter backend dev",
+    "build": "pnpm --filter backend build && pnpm --filter frontend build",
+    "db:schema": "pnpm --filter backend db:schema",
+    "db:migrate": "pnpm --filter backend db:migrate",
+    "db:studio": "pnpm --filter backend db:studio"
+  },
+  "packageManager": "pnpm@10.30.3"
+}

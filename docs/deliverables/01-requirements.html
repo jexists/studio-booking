@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>01 요구사항 정의서 · 흙과불 도자기공방</title>
+<style>
+:root{
+  --bg:#faf7f2; --paper:#fff; --ink:#2b2420; --muted:#7a6e66; --line:#e8e0d6;
+  --clay:#a8572e; --clay-soft:#f6e7dc; --kiln:#3d5a4a; --kiln-soft:#e3ece6;
+  --warn:#9a6a00; --warn-soft:#fbf1d6; --red:#a33a2a; --red-soft:#f8e1dc; --gray-soft:#efebe6;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 -apple-system,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif}
+.wrap{display:grid;grid-template-columns:220px minmax(0,1fr);gap:32px;max-width:1180px;margin:0 auto;padding:32px 24px 80px}
+nav{position:sticky;top:24px;align-self:start;font-size:13px}
+nav b{display:block;color:var(--muted);font-size:11px;letter-spacing:.08em;margin-bottom:8px}
+nav a{display:block;padding:5px 10px;border-left:2px solid var(--line);color:var(--ink);text-decoration:none}
+nav a:hover{border-color:var(--clay);color:var(--clay)}
+header.hero{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:28px 28px 22px;margin-bottom:24px}
+.kicker{color:var(--clay);font-weight:700;font-size:13px;letter-spacing:.04em}
+h1{margin:4px 0 14px;font-size:28px;line-height:1.3}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted)}
+.status{display:inline-block;background:var(--warn-soft);color:var(--warn);font-weight:700;border-radius:999px;padding:2px 10px}
+.legend{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;font-size:12.5px}
+section{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:24px 26px;margin-bottom:20px;scroll-margin-top:16px}
+h2{margin:0 0 14px;font-size:19px;display:flex;align-items:center;gap:10px}
+h2 .n{background:var(--clay);color:#fff;border-radius:8px;font-size:13px;padding:2px 9px}
+h3{font-size:15.5px;margin:22px 0 10px}
+.tbl{overflow-x:auto;margin:6px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--gray-soft);font-weight:700;white-space:nowrap}
+td code,p code,li code{background:var(--gray-soft);border-radius:4px;padding:1px 5px;font-size:12.5px}
+.tag{display:inline-block;border-radius:6px;padding:1px 7px;font-size:12px;font-weight:700;white-space:nowrap}
+.t-ok{background:var(--kiln-soft);color:var(--kiln)}
+.t-assume{background:var(--warn-soft);color:var(--warn)}
+.t-prop{background:var(--clay-soft);color:var(--clay)}
+.t-no{background:var(--red-soft);color:var(--red)}
+.t-gray{background:var(--gray-soft);color:var(--muted)}
+.p-M{background:var(--kiln);color:#fff}.p-S{background:var(--warn-soft);color:var(--warn)}.p-L{background:var(--gray-soft);color:var(--muted)}
+.note{border-left:4px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;font-size:13.5px;margin:12px 0}
+.summary{background:var(--kiln-soft);border-left:4px solid var(--kiln);padding:10px 14px;border-radius:0 8px 8px 0;font-weight:600;margin-top:12px}
+.problems{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.card{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:#fffdfa}
+.card .num{color:var(--clay);font-weight:800;font-size:22px;line-height:1}
+.card h4{margin:6px 0 6px;font-size:15px}
+.card p{margin:0;font-size:13.5px;color:var(--muted)}
+blockquote{margin:0;font-size:13.5px}
+.who{font-weight:700;white-space:nowrap}
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:8px 0 14px}
+.step{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fffdfa}
+.step .k{font-weight:800;color:var(--clay)}
+.step .f{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--kiln);margin:4px 0}
+.step .d{font-size:12.5px;color:var(--muted)}
+ol.q li{margin:6px 0}
+.decide{border:2px solid var(--clay);border-radius:14px;padding:18px 22px;background:var(--clay-soft)}
+.decide li{margin:6px 0}
+footer{color:var(--muted);font-size:12px;text-align:center;margin-top:20px}
+@media (max-width:860px){
+  .wrap{grid-template-columns:1fr;padding:16px 16px 60px;gap:16px}
+  nav{position:static;display:flex;flex-wrap:wrap;gap:4px}
+  nav b{width:100%}
+  nav a{border:1px solid var(--line);border-radius:999px;padding:3px 10px}
+  .problems,.steps{grid-template-columns:1fr}
+  section,header.hero{padding:18px 16px}
+  h1{font-size:22px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <b>목차</b>
+  <a href="#s1">1. 프로젝트 현황</a>
+  <a href="#s2">2. 고객의 말</a>
+  <a href="#s3">3. 진짜 문제</a>
+  <a href="#s4">4. 질문과 답</a>
+  <a href="#s5">5. 요구사항 목록</a>
+  <a href="#s6">6. 사용자 역할</a>
+  <a href="#s7">7. 미정·가정</a>
+  <a href="#s8">8. 결정 기록</a>
+  <a href="#s9">9. 작업 순서</a>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="kicker">고객사 11 · 흙과불 도자기공방</div>
+  <h1>01. 요구사항 정의서</h1>
+  <div class="meta">
+    <span>상태 <span class="status" style="background:var(--kiln-soft);color:var(--kiln)">Approved · 2026-11-13</span></span>
+    <span>목적: 고객의 말에서 진짜 문제를 찾고 요구사항을 ID로 정리</span>
+    <span>다음 문서: <code>02-plan.md</code></span>
+  </div>
+  <div class="meta" style="margin-top:6px">근거: 해커톤_정리.md (고객 소개 · 인터뷰 16줄 · 추가 인터뷰 2건 · 기본 요구사항 6개), backend/, frontend/, sample-data/</div>
+  <div class="legend">
+    <span class="tag t-ok">확인</span> 원문·코드에서 직접 확인
+    <span class="tag t-assume">가정</span> 고객 미정 → 내가 세운 가정(승인 필요)
+    <span class="tag t-prop">제안</span> 고객이 말하지 않았지만 필요
+  </div>
+</header>
+
+<section id="s1">
+  <h2><span class="n">1</span>프로젝트 현황 (코드에서 확인)</h2>
+  <div class="tbl"><table>
+    <tr><th>영역</th><th>상태</th><th>근거</th></tr>
+    <tr><td>구조</td><td>pnpm 모노레포. <code>frontend/</code> Next.js 16.4 App Router + Tailwind 4, <code>backend/</code> NestJS 11 + Prisma 6</td><td><code>package.json</code> 3종</td></tr>
+    <tr><td>API</td><td><code>GET /api/health</code> 하나뿐 (DB <code>SELECT 1</code>)</td><td><code>backend/src/modules/health/</code></td></tr>
+    <tr><td>DB</td><td>Render PostgreSQL, <code>hackathon</code> 스키마, <span class="tag t-no">모델 0개</span></td><td><code>backend/prisma/schema.prisma</code></td></tr>
+    <tr><td>화면</td><td><code>/</code> 한 장 (헬스 상태 카드) + 공용 Header</td><td><code>frontend/src/app/page.tsx</code></td></tr>
+    <tr><td>인증·권한</td><td><span class="tag t-no">없음</span> 로그인·역할 코드 없음</td><td>전체 <code>src/</code></td></tr>
+    <tr><td>디자인</td><td>Tailwind 기본 + 색 변수 2개, 공용 UI 컴포넌트 없음</td><td><code>globals.css</code>, <code>components/ui/.gitkeep</code></td></tr>
+    <tr><td>AI·검색</td><td>코드 없음. pgvector 0.8.7 사용 가능(미설치)</td><td>CLAUDE.md 환경 표</td></tr>
+    <tr><td>배포</td><td>미연결 (Vercel · Render 예정)</td><td>CLAUDE.md</td></tr>
+  </table></div>
+  <div class="summary">→ 도메인 기능은 전부 미구현. 아래 요구사항은 모두 "명시됐지만 미구현" 또는 "추가 검토" 상태.</div>
+
+  <h3>시험 자료 현황</h3>
+  <div class="tbl"><table>
+    <tr><th>고객 자료</th><th>상태</th><th>위치</th></tr>
+    <tr><td>기법별 수업 노트 (약 80쪽)</td><td><span class="tag t-ok">준비됨</span> 17개 파일, p.1~p.80 쪽 표시</td><td><code>sample-data/notes/</code></td></tr>
+    <tr><td>공급처 기술 자료 4곳 (약 160쪽 PDF)</td><td><span class="tag t-no">프로젝트에 없음</span></td><td><code>sample-data/suppliers/</code> 비어 있음</td></tr>
+    <tr><td>클래스 일정·예약 목록</td><td><span class="tag t-gray">없음</span></td><td>시드 데이터로 만들 예정</td></tr>
+    <tr><td>작품 목록 (약 200점)</td><td><span class="tag t-gray">없음</span></td><td>시드 데이터로 만들 예정</td></tr>
+  </table></div>
+  <div class="note">수업 노트는 시험용으로 <b>우리가 지어낸 자료</b>입니다. 노트 속 세부 규칙(선반 A-1~E-5, 흙·유약 코드, 담당자 이름)은 고객 인터뷰 근거가 아니므로 요구사항 근거로 쓰지 않고, "AI 답변이 찾아낼 내용"으로만 씁니다.</div>
+</section>
+
+<section id="s2">
+  <h2><span class="n">2</span>고객의 말 (원문 인용)</h2>
+  <div class="tbl"><table>
+    <tr><th>#</th><th>누가</th><th>원문</th><th>연결</th></tr>
+    <tr><td>Q-01</td><td class="who">대표</td><td><blockquote>"클래스 정원은 8명이에요. 물레 수업은 물레가 6대라 6명이고요."</blockquote></td><td>R-01</td></tr>
+    <tr><td>Q-02</td><td class="who">류 강사</td><td><blockquote>"DM으로 예약받으면 놓치는 게 있어요. 확정했는지 안 했는지 헷갈려요."</blockquote></td><td>R-02</td></tr>
+    <tr><td>Q-03</td><td class="who">류 강사</td><td><blockquote>"입금 확인과 답장, 목록 기록이 따로 이루어져서 헷갈릴 때가 있어요." (추가)</blockquote></td><td>R-02</td></tr>
+    <tr><td>Q-04</td><td class="who">대표</td><td><blockquote>"작품 관리가 제일 큰일이에요. … 초벌, 유약, 재벌로 나뉘어서 한 달 걸려요."</blockquote></td><td>R-04</td></tr>
+    <tr><td>Q-05</td><td class="who">류 강사</td><td><blockquote>"수강생분들이 자기 작품이 지금 어디까지 왔는지 계속 물어보세요."</blockquote></td><td>R-05</td></tr>
+    <tr><td>Q-06</td><td class="who">대표</td><td><blockquote>"가마는 작품이 30점 이상 모였을 때 돌립니다." / "예상 완성일을 범위로 안내하고 싶어요." (추가)</blockquote></td><td>R-06</td></tr>
+    <tr><td>Q-07</td><td class="who">류 강사</td><td><blockquote>"이름표가 떨어지면 확인이 어려워집니다." (추가)</blockquote></td><td>R-04</td></tr>
+    <tr><td>Q-08</td><td class="who">류 강사</td><td><blockquote>"보강은 빠진 수업이 있는 같은 주 안에서만 … 다른 정규반에 자리가 남아 있을 때" (추가)</blockquote></td><td>R-08</td></tr>
+    <tr><td>Q-09</td><td class="who">권 강사</td><td><blockquote>"식기 사용처럼 안전과 직접 관련된 질문은 근거를 꼭 확인해서 답해야 해요." (추가)</blockquote></td><td>R-10</td></tr>
+    <tr><td>Q-10</td><td class="who">권 강사</td><td><blockquote>"자료가 여러 곳에 있어 찾는 데 시간이 걸릴 때가 있어요." (추가 2)</blockquote></td><td>R-09</td></tr>
+    <tr><td>Q-11</td><td class="who">권 강사</td><td><blockquote>"DM 질문은 앞선 예약 대화 사이에 섞여 있어 확인이 늦어질 때가 있습니다." (추가)</blockquote></td><td>R-09</td></tr>
+    <tr><td>Q-12</td><td class="who">대표</td><td><blockquote>"문의가 DM에 섞이다 보니 나중에 다시 찾아보는 일이 있어요." (추가)</blockquote></td><td>R-13</td></tr>
+    <tr><td>Q-13</td><td class="who">대표</td><td><blockquote>"기록이 DM, 예약 목록, 작품 목록, 자료에 나뉘어 있어서 확인할 때 여러 곳을 봐야 합니다." (추가 2)</blockquote></td><td>전체</td></tr>
+    <tr><td>Q-14</td><td class="who">류 강사</td><td><blockquote>"수업 중에는 휴대폰으로 바로 확인하는 일이 가장 많을 것 같아요." (추가)</blockquote></td><td>N-01</td></tr>
+  </table></div>
+</section>
+
+<section id="s3">
+  <h2><span class="n">3</span>진짜 문제</h2>
+  <div class="problems">
+    <div class="card"><div class="num">1</div><h4>기록이 네 군데에 흩어져 있다</h4><p>DM · 예약 목록 · 작품 목록 · 자료. 같은 정보를 여러 곳에서 다시 확인한다. (Q-13)</p></div>
+    <div class="card"><div class="num">2</div><h4>예약 "확정" 상태가 한곳에 없다</h4><p>확정 답장·입금·목록 기록이 따로라 놓치고, 정원 관리가 사람 기억에 의존한다. (Q-02, Q-03)</p></div>
+    <div class="card"><div class="num">3</div><h4>수강생이 작품 상태를 볼 수 없다</h4><p>같은 문의가 반복되고, 가마 가동이 불규칙해 완성일도 말하기 어렵다. (Q-04~Q-07)</p></div>
+    <div class="card"><div class="num">4</div><h4>흙·유약 질문의 근거 찾기가 느리다</h4><p>특히 안전 질문. 자료가 두껍고 회사마다 달라 틀리게 답할 위험이 있다. (Q-09, Q-10)</p></div>
+  </div>
+</section>
+
+<section id="s4">
+  <h2><span class="n">4</span>고객에게 한 질문과 답 (요약)</h2>
+  <div class="tbl"><table>
+    <tr><th>질문</th><th>답</th><th>반영</th></tr>
+    <tr><td>전화 예약?</td><td>안 받음, 계획도 없음. DM·네이버만</td><td>R-01</td></tr>
+    <tr><td>신청 페이지 필요?</td><td>한곳에서 받고 정원 넘지 않게</td><td>R-01</td></tr>
+    <tr><td>확정 시점?</td><td>강사 확인 → DM 답장 → 목록 기록 (따로라 혼동)</td><td>R-02</td></tr>
+    <tr><td>취소·노쇼?</td><td>원데이 3일 전 전액, 이후 50%. 노쇼·대기자 기준 없음</td><td>R-03, U-01</td></tr>
+    <tr><td>단계 소요일·기록 담당?</td><td>전체 3~4주, 30점 이상 가동, 담당 미정</td><td>R-06, U-04</td></tr>
+    <tr><td>가마 파손 시?</td><td>재제작/환불 기준 없음</td><td>U-05</td></tr>
+    <tr><td>보관?</td><td>완성 후 60일, 연락 후 처분</td><td>R-07</td></tr>
+    <tr><td>수령 방식?</td><td>수강생이 알려 주고 강사가 기록, 택배는 수강생 부담</td><td>R-05</td></tr>
+    <tr><td>보강 조건?</td><td>같은 주 · 다른 정규반 · 정원 내, 강사 확인 후 안내</td><td>R-08</td></tr>
+    <tr><td>안전 질문?</td><td>근거 확인 필수, 장식용 유약은 식기 불가 안내</td><td>R-10</td></tr>
+    <tr><td>영어 질문?</td><td>영어로 답함</td><td>R-11</td></tr>
+    <tr><td>자료 변경?</td><td>주기 없음, 새 자료 생기면 같이 봄</td><td>R-12</td></tr>
+    <tr><td>단체 견적?</td><td>기준·진행 단계 통일 안 됨</td><td>R-13, U-06</td></tr>
+    <tr><td>수강생 로그인?</td><td>정하지 않음. 어렵지 않게 확인되면 좋겠다</td><td>U-03</td></tr>
+    <tr><td>사용 기기?</td><td>수업 중 휴대폰, 긴 목록·자료는 컴퓨터</td><td>N-01</td></tr>
+  </table></div>
+  <p style="font-size:13px;color:var(--muted)">원문 전체: 해커톤_정리.md "추가 인터뷰"</p>
+</section>
+
+<section id="s5">
+  <h2><span class="n">5</span>요구사항 목록</h2>
+  <p style="font-size:13.5px">우선순위 <span class="tag p-M">M</span> 오늘 MVP 후보 · <span class="tag p-S">S</span> 시간 남으면 · <span class="tag p-L">L</span> 미룸 — 최종 확정은 02 기획서에서.</p>
+
+  <h3>5-1. 기능 요구사항</h3>
+  <div class="tbl"><table>
+    <tr><th>ID</th><th>요구사항</th><th>근거</th><th>구분</th><th>우선</th></tr>
+    <tr><td>R-01</td><td>클래스 일정별로 신청을 한곳에서 받고, 종류별 정원(<b>일반 8 · 물레 6</b>)을 넘으면 신청을 막는다. 신청 경로(DM·네이버·공방 페이지)를 기록한다</td><td>기본 1, Q-01</td><td><span class="tag t-ok">기본</span></td><td><span class="tag p-M">M</span></td></tr>
+    <tr><td>R-02</td><td>예약 상태(신청 → 확정 → 취소)를 한 화면에서 관리하고, 확정 여부를 직원이 바로 알 수 있다</td><td>Q-02, Q-03</td><td><span class="tag t-ok">인터뷰</span></td><td><span class="tag p-M">M</span></td></tr>
+    <tr><td>R-03</td><td>원데이 취소 시 환불 비율을 규칙대로 표시 (3일 전까지 100%, 이후 50%)</td><td>추가 인터뷰</td><td><span class="tag t-ok">규칙</span></td><td><span class="tag p-S">S</span></td></tr>
+    <tr><td>R-04</td><td>작품마다 고유 번호·주인·단계(성형→초벌→유약→재벌→완성→수령)를 기록하고 직원이 단계를 바꾼다. 이름표가 떨어져도 번호로 찾는다</td><td>기본 2, Q-04, Q-07</td><td><span class="tag t-ok">기본</span></td><td><span class="tag p-M">M</span></td></tr>
+    <tr><td>R-05</td><td>수강생이 자기 작품의 단계와 수령 방식(방문/택배)을 휴대폰으로 조회한다</td><td>기본 2, Q-05</td><td><span class="tag t-ok">기본</span></td><td><span class="tag p-M">M</span></td></tr>
+    <tr><td>R-06</td><td>완성 예상일을 하루가 아닌 <b>범위</b>로 보여 준다 (수업일 + 3~4주)</td><td>Q-06</td><td><span class="tag t-ok">규칙</span></td><td><span class="tag p-M">M</span></td></tr>
+    <tr><td>R-07</td><td>완성 후 60일 보관 기한을 표시하고 기한 넘은 작품을 직원이 본다</td><td>추가 인터뷰</td><td><span class="tag t-ok">규칙</span></td><td><span class="tag p-S">S</span></td></tr>
+    <tr><td>R-08</td><td>정규반 결석 회차 보강 신청 → <b>같은 주 · 다른 정규반 · 정원 내 빈자리</b>만 후보로 보이고, 강사가 확인해야 확정</td><td>기본 3, Q-08</td><td><span class="tag t-ok">기본</span></td><td><span class="tag p-M">M</span></td></tr>
+    <tr><td>R-09</td><td>흙·유약·기법 질문에 공급처 자료·수업 노트를 근거로 답하고 <b>근거 위치(자료명·쪽)</b>를 보여 준다</td><td>기본 4, Q-10</td><td><span class="tag t-ok">기본</span></td><td><span class="tag p-M">M</span></td></tr>
+    <tr><td>R-10</td><td>식기·오븐·전자레인지 등 안전 질문은 근거가 있을 때만 답하고 없으면 "확인 후 안내". 장식용 유약은 식기 불가로 안내</td><td>Q-09</td><td><span class="tag t-ok">규칙</span></td><td><span class="tag p-M">M</span></td></tr>
+    <tr><td>R-11</td><td>영어 질문에는 영어로 답한다</td><td>추가 인터뷰</td><td><span class="tag t-ok">규칙</span></td><td><span class="tag p-M">M</span></td></tr>
+    <tr><td>R-12</td><td>직원이 새 자료(PDF·텍스트)를 올리면 바로 검색·답변에 반영</td><td>기본 5</td><td><span class="tag t-ok">기본</span></td><td><span class="tag p-M">M</span></td></tr>
+    <tr><td>R-13</td><td>단체 클래스 문의를 등록하고 견적·진행 상태를 한 목록에서 관리</td><td>기본 6, Q-12</td><td><span class="tag t-ok">기본</span></td><td><span class="tag p-M">M</span></td></tr>
+    <tr><td>R-14</td><td><b>직원 계정</b>: 대표가 직원 이메일로 초대 메일 발송 → 직원이 링크에서 비밀번호 설정 → 이메일+비밀번호로 로그인. 직원 초대는 대표만</td><td>사용자 결정 (U-07)</td><td><span class="tag t-prop">사용자 결정</span></td><td><span class="tag p-M">M</span></td></tr>
+  </table></div>
+
+  <h3>5-2. 추가 검토 기능 <span class="tag t-prop">제안</span> (가산점 후보)</h3>
+  <div class="tbl"><table>
+    <tr><th>ID</th><th>제안</th><th>이유</th><th>사용자</th><th>영향</th><th>우선</th></tr>
+    <tr><td>P-01</td><td><b>가마 대기 현황</b>: 재벌 대기 작품 수 / 30점</td><td>가동 기준(30점)이 확정 규칙인데 지금 몇 점인지 아무도 세지 않음 → 완성일 범위 안내의 근거</td><td>대표</td><td>가동 판단·완성일 안내</td><td><span class="tag p-S">S</span></td></tr>
+    <tr><td>P-02</td><td><b>질문 기록</b>: AI 질문·답 저장</td><td>"반복해서 나오는 질문은 … 안내에 반영하면 좋겠다"(권 강사)</td><td>강사</td><td>FAQ 개선</td><td><span class="tag p-S">S</span></td></tr>
+    <tr><td>P-03</td><td>수업 준비물 보기 (흙 양·유약 색)</td><td>"한눈에 확인할 수 있으면 도움"(권 강사)</td><td>강사</td><td>수업 준비</td><td><span class="tag p-L">L</span></td></tr>
+    <tr><td>P-04</td><td>파손 안내 문안 초안(AI)</td><td>"어떻게 말씀드릴지 늘 고민"(대표). 보상 기준은 미정이라 문안만</td><td>대표</td><td>응대 부담</td><td><span class="tag p-L">L</span></td></tr>
+    <tr><td>P-05</td><td>후기 수집</td><td>권 강사 요청, 항목 미정</td><td>강사</td><td>수업 개선</td><td><span class="tag p-L">L</span></td></tr>
+  </table></div>
+
+  <h3>5-3. 이번 범위 밖</h3>
+  <ul style="font-size:13.5px">
+    <li>결제·입금 연동, 네이버 예약·인스타 DM 자동 연동 (외부 API, 1일 범위 초과)</li>
+    <li>작품 단계별 사진 업로드 (고객이 부담 우려)</li>
+    <li>선물 포장·택배 비용 계산 (금액 미정)</li>
+    <li>문자·알림톡 발송</li>
+  </ul>
+
+  <h3>5-4. 비기능 요구사항</h3>
+  <div class="tbl"><table>
+    <tr><th>ID</th><th>내용</th><th>근거</th></tr>
+    <tr><td>N-01</td><td>수강생 조회·직원 단계 변경·AI 질문은 <b>휴대폰 우선</b>, 예약·작품 목록·자료 관리는 컴퓨터</td><td>Q-14</td></tr>
+    <tr><td>N-02</td><td>배포 주소(Vercel + Render)에서 동작</td><td>심사 기준</td></tr>
+    <tr><td>N-03</td><td>API 키·DB 주소는 백엔드 환경변수에만</td><td>해커톤 규칙</td></tr>
+    <tr><td>N-04</td><td>실제 개인정보 없이 가상 데이터만</td><td>해커톤 규칙</td></tr>
+  </table></div>
+</section>
+
+<section id="s6">
+  <h2><span class="n">6</span>사용자 역할 (확인된 것)</h2>
+  <div class="tbl"><table>
+    <tr><th>역할</th><th>근거</th><th>하는 일 (원문 기준)</th></tr>
+    <tr><td><b>대표</b></td><td>고객 소개</td><td>운영, 가마 가동, 단체 견적</td></tr>
+    <tr><td><b>강사</b> (류·권 2명)</td><td>고객 소개, 인터뷰</td><td>예약 확인·목록 기록, 수업, 작품 목록, 문의·보강, 자료 질문 응대</td></tr>
+    <tr><td><b>수강생</b> (원데이/정규반)</td><td>고객 소개</td><td>신청, 작품 상태 확인, 보강 신청, 질문</td></tr>
+    <tr><td><b>단체 문의자</b></td><td>인터뷰</td><td>단체 클래스 문의</td></tr>
+  </table></div>
+  <div class="note">업무 분담은 "나눠서 한다"까지만 확인됨. 대표·강사 권한 차이: <b>직원 초대는 대표만</b>(U-07 결정), 그 밖은 STEP 2에서 정함. 사용자가 말한 "원장" = 이 문서의 "대표".</div>
+</section>
+
+<section id="s7">
+  <h2><span class="n">7</span>미정 사항과 가정 제안</h2>
+  <div class="tbl"><table>
+    <tr><th>ID</th><th>미정</th><th><span class="tag t-assume">가정</span></th><th>상태</th></tr>
+    <tr><td>U-01</td><td>노쇼·대기자</td><td>만들지 않음. 정원이 차면 "마감" 표시만</td><td><span class="tag t-ok">승인</span></td></tr>
+    <tr><td>U-02</td><td>수강료·할인</td><td>금액 필드 없음 (단체 견적 금액만)</td><td><span class="tag t-ok">승인</span></td></tr>
+    <tr><td>U-03</td><td>수강생 로그인 방식</td><td><b>예약 번호 + 휴대폰 뒤 4자리</b>로 조회 (가입 없음)</td><td><span class="tag t-ok">승인</span></td></tr>
+    <tr><td>U-04</td><td>단계 기록 담당</td><td>직원 누구나 변경, 변경 시각 기록</td><td><span class="tag t-ok">승인</span></td></tr>
+    <tr><td>U-05</td><td>가마 파손 재제작/환불</td><td>작품에 "파손" 표시만, 보상 처리 없음</td><td><span class="tag t-ok">승인</span></td></tr>
+    <tr><td>U-06</td><td>단체 견적 기준·단계</td><td>문의 → 견적 발송 → 확정 → 완료 / 취소. 금액은 직원 입력</td><td><span class="tag t-ok">승인</span></td></tr>
+    <tr><td>U-07</td><td>직원 로그인</td><td><s style="color:var(--muted)">공용 비밀번호 1개</s> → <b>대표가 직원 이메일로 초대 메일 → 직원이 링크에서 비밀번호 설정 → 이메일+비밀번호 로그인.</b> 대표 계정은 처음에 시드로 1개</td><td><span class="tag t-prop">수정 승인</span></td></tr>
+    <tr><td>U-08</td><td>일반/물레 동시 운영, 강사 고정</td><td>일정마다 종류·정원만 저장, 강사 지정 안 함</td><td><span class="tag t-ok">승인</span></td></tr>
+  </table></div>
+</section>
+
+<section id="s8">
+  <div class="decide">
+  <h2 style="margin-top:0"><span class="n">8</span>사용자 결정 기록 (2026-11-13)</h2>
+  <div class="tbl"><table style="background:#fff">
+    <tr><th>질문</th><th>결정</th></tr>
+    <tr><td>작업 순서 조정 (9절)</td><td><span class="tag t-ok">승인</span></td></tr>
+    <tr><td>U-03 수강생 조회 방식</td><td><span class="tag t-ok">승인</span> 예약 번호 + 휴대폰 뒤 4자리</td></tr>
+    <tr><td>U-07 직원 로그인</td><td><span class="tag t-prop">수정</span> 대표가 초대 메일 → 직원이 비밀번호 설정 (R-14)</td></tr>
+    <tr><td>자료 검색 방식</td><td><span class="tag t-ok">승인</span> pgvector(임베딩)</td></tr>
+    <tr><td>P-01 가마 대기 현황, P-02 질문 기록</td><td><span class="tag t-ok">승인</span> S</td></tr>
+  </table></div>
+  <h3>남은 확인 사항</h3>
+  <ul>
+    <li>공급처 PDF 4종 원고·PDF 위치 (<code>sample-data/suppliers/</code> 비어 있음) — 아직 답 없음</li>
+    <li><b>메일 발송 방법</b> (STEP 3에서 결정): 실제 발송에는 메일 발송 서비스와 키가 필요. 발송 실패·키 없음에 대비해 <b>초대 링크를 대표 화면에도 표시</b>(복사해서 직접 전달)하는 것을 함께 제안</li>
+  </ul>
+  </div>
+</section>
+
+<section id="s9">
+  <h2><span class="n">9</span>이 프로젝트에 맞춘 작업 순서 (제안)</h2>
+  <p style="font-size:13.5px">남은 시간(약 3시간, 15:00 제출)과 산출물 이름에 맞춰 9단계를 4개 문서로 묶습니다.</p>
+  <div class="steps">
+    <div class="step"><div class="k">A</div><div class="f">01-requirements.md</div><div class="d">STEP 1 요구사항 (이 문서)</div></div>
+    <div class="step"><div class="k">B</div><div class="f">02-plan.md</div><div class="d">STEP 2 역할·권한 · 3 화면 목록 · 4 사용자 흐름 · 5 사이트맵</div></div>
+    <div class="step"><div class="k">C</div><div class="f">03-spec.md</div><div class="d">STEP 6 화면설계 · 7 ERD · 8 디자인 규칙(최소) · 9 구현 순서</div></div>
+    <div class="step"><div class="k">D</div><div class="f">04-test-results.md</div><div class="d">일찍 배포 → 기능별 제작 → 테스트</div></div>
+  </div>
+  <ul style="font-size:13.5px">
+    <li>제출 산출물 4종 이름과 맞춰 중복 문서를 만들지 않는다.</li>
+    <li>화면 목록·흐름·사이트맵은 서로 의존해 한 번에 확인받는 편이 빠르다.</li>
+    <li>디자인 시스템은 화면 수가 적어 Tailwind 규칙 몇 줄이면 충분하다.</li>
+  </ul>
+</section>
+
+<footer>원본 문서: docs/deliverables/01-requirements.md · 상태 Approved</footer>
+</main>
+</div>
+</body>
+</html>

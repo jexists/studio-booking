@@ -322,6 +322,11 @@ html[data-theme="dark"] .term { background: #05070a; border-color: #3a414d; }  /
    =========================================== */
 .thanks { justify-content: center; }
 .thanks .grid3 { display: grid; grid-template-columns: 1fr 360px 360px; gap: 56px; align-items: center; }
+.qr { display: block; width: 100%; aspect-ratio: 1; background: #fff; padding: 8px; border-radius: 10px; }  /* 다크 모드에서도 흰 바탕 유지(스캔용) */
+.qr-card { margin: 0; display: flex; flex-direction: column; gap: 16px; padding: 24px; background: var(--card); border: 1.5px solid var(--line); border-radius: 14px; }
+.qr-card figcaption { display: flex; flex-direction: column; gap: 4px; }
+.qr-card figcaption b { font-size: 26px; font-weight: 800; }
+.qr-card figcaption span { font: 500 17px var(--font-mono); color: var(--muted); word-break: break-all; }
 .thanks h1 { font-size: 120px; font-weight: 800; letter-spacing: -.035em; line-height: 1.05; }
 .qr-card { background: #fff; border-radius: 18px; padding: 22px; border: 1.5px solid var(--line); text-align: center; color: #0c0c0c; }
 .qr-card svg { width: 100%; height: auto; display: block; }
@@ -354,6 +359,22 @@ body.on-demo #bar { display: none; }
 #toc li button .no { font-family: var(--font-mono); color: var(--subtle); width: 26px; }
 #toc li button.cur { color: var(--accent); font-weight: 700; }
 #toc li button:hover { background: var(--card2); }
+
+/* 주요 개발 화면 장 */
+.dev { display: grid; grid-template-columns: 372px 372px 1fr; gap: 40px; flex: 1; min-height: 0; }
+.dev .ph { display: flex; flex-direction: column; min-height: 0; }
+.dev .ph .fit { flex: 1; min-height: 0; border-radius: 22px; }
+.dev .ph .cap { text-align: center; }
+.expl { display: flex; flex-direction: column; justify-content: center; }
+.expl .item { padding: 22px 0; border-bottom: 1px solid var(--line); }
+.expl .item:first-child { border-top: 2px solid var(--ink); }
+.lb { font: 700 18px var(--font-mono); color: var(--accent); margin-bottom: 8px; letter-spacing: .04em; }
+.expl .w, .expl3 .w { font-size: 27px; font-weight: 800; line-height: 1.35; }
+.expl .h, .expl3 .h { font-size: 21px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+.dev2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 32px; }
+.dev2 .fit { height: 480px; }
+.expl3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; margin-top: 24px; }
+.expl3 .item { border-top: 2px solid var(--ink); padding-top: 16px; }
 </style>
 </head>
 <body>
@@ -381,7 +402,8 @@ body.on-demo #bar { display: none; }
     </div>
   </div>
   <div class="apps">
-    <div class="app-row r" style="grid-template-columns:1fr"><div><div class="nm">배포 주소</div><div class="ur">heuk-frontend.vercel.app</div><div class="tech">Next.js · Vercel / NestJS · PostgreSQL · Render</div></div></div>
+    <div class="app-row r"><div><div class="nm">웹 (수강생 · 직원)</div><div class="ur">heuk-frontend.vercel.app</div><div class="tech">Next.js · Vercel / NestJS · PostgreSQL · Render</div></div><img class="qr" src="qr-web.png" alt="웹 주소 QR"></div>
+    <div class="app-row r"><div><div class="nm">발표 자료</div><div class="ur">jexists.github.io/studio-booking/docs/presentation</div><div class="tech">GitHub Pages</div></div><img class="qr" src="qr-deck.png" alt="발표 자료 주소 QR"></div>
   </div>
 </section>
 
@@ -559,6 +581,43 @@ body.on-demo #bar { display: none; }
 </section>
 
 <!-- 시연 -->
+
+<section class="slide" data-title="예약 정원 지키기" data-section="주요 개발 화면">
+  <div class="head"><div><div class="kicker">04 · 주요 개발 화면</div><h2 class="title">예약 정원 지키기</h2></div></div>
+  <div class="dev r">
+    <div class="ph"><div class="fit"><img src="captures/01-classes-seats.jpg" alt="일정별 남은 자리 표시"></div><div class="cap">일정별 남은 자리 표시</div></div>
+    <div class="ph"><div class="fit"><img src="captures/02-classes-headcount.jpg" alt="인원은 남은 자리까지만"></div><div class="cap">인원은 남은 자리까지만</div></div>
+    <div class="expl"><div class="item"><div class="lb">만든 것</div><div class="w">남은 자리 표시 · 인원 선택 제한</div><div class="h">잔여 1자리 수업은 1명만 선택 가능</div></div><div class="item"><div class="lb">막은 오류</div><div class="w">화면 우회 · 동시 신청으로 정원 초과</div><div class="h">서버에서 수업 행 잠금 후 인원 재계산 → 초과 시 409, 동시 8건 신청에도 정원만 통과</div></div><div class="item"><div class="lb">해결한 요구</div><div class="w">기본 1 · 일반 8 / 물레 6 정원</div><div class="h">신청은 한곳에서, 확정 여부 기록</div></div></div>
+  </div>
+</section>
+
+<section class="slide" data-title="내 작품 셀프 조회" data-section="주요 개발 화면">
+  <div class="head"><div><div class="kicker">04 · 주요 개발 화면</div><h2 class="title">내 작품 셀프 조회</h2></div></div>
+  <div class="dev r">
+    <div class="ph"><div class="fit"><img src="captures/03-me-stages.jpg" alt="6단계 진행 · 완성 예상 범위"></div><div class="cap">6단계 진행 · 완성 예상 범위</div></div>
+    <div class="ph"><div class="fit"><img src="captures/04-me-glaze-warning.jpg" alt="장식용 유약 식기 경고 · 근거"></div><div class="cap">장식용 유약 식기 경고 · 근거</div></div>
+    <div class="expl"><div class="item"><div class="lb">만든 것</div><div class="w">예약번호 + 휴대폰 뒤 4자리 조회</div><div class="h">성형 → 수령 6단계, 완성일은 하루가 아닌 범위</div></div><div class="item"><div class="lb">막은 오류</div><div class="w">남의 작품 조회 · 장식용 작품 식기 사용</div><div class="h">5번 틀리면 10분 잠금, 장식용 유약은 식기 사용 불가 + 데이터시트 쪽수</div></div><div class="item"><div class="lb">해결한 요구</div><div class="w">기본 2 · 작품 상태 반복 문의</div><div class="h">"어디까지 왔어요?" DM 대신 직접 확인</div></div></div>
+  </div>
+</section>
+
+<section class="slide" data-title="자료 근거 답변 (AI)" data-section="주요 개발 화면">
+  <div class="head"><div><div class="kicker">04 · 주요 개발 화면</div><h2 class="title">자료 근거 답변 (AI)</h2></div></div>
+  <div class="dev r">
+    <div class="ph"><div class="fit"><img src="captures/05-ask-sources.jpg" alt="답변 + 근거 위치(자료 · 쪽)"></div><div class="cap">답변 + 근거 위치(자료 · 쪽)</div></div>
+    <div class="ph"><div class="fit"><img src="captures/06-ask-safety-en.jpg" alt="근거 없는 안전 질문 · 영어"></div><div class="cap">근거 없는 안전 질문 · 영어</div></div>
+    <div class="expl"><div class="item"><div class="lb">만든 것</div><div class="w">공급처 자료 · 수업 노트 근거 답변</div><div class="h">답 아래 근거 자료 이름과 쪽 표시, 자료 올리면 바로 검색 반영</div></div><div class="item"><div class="lb">막은 오류</div><div class="w">근거 없는 안전 답변 단정</div><div class="h">식기 · 전자레인지 질문은 근거 부족 시 AI 답 대신 "공방 확인" 고정 문구</div></div><div class="item"><div class="lb">해결한 요구</div><div class="w">기본 4 · 5 · 영어 질문</div><div class="h">영어 질문에는 영어로, 질문 기록은 직원 화면에서 확인</div></div></div>
+  </div>
+</section>
+
+<section class="slide" data-title="직원 운영 화면" data-section="주요 개발 화면">
+  <div class="head"><div><div class="kicker">04 · 주요 개발 화면</div><h2 class="title">직원 운영 화면</h2></div></div>
+  <div class="dev2 r">
+    <div><div class="fit"><img src="captures/07-staff-today.png" alt="오늘 화면"></div><div class="cap">오늘 — 미확정 신청 · 보강 대기 · 환불 요청 · 노쇼 · 가마 대기 n/30</div></div>
+    <div><div class="fit"><img src="captures/08-staff-ship-guard.png" alt="택배 배송 관리"></div><div class="cap">택배 송장 · 배송 상태 · 되돌리기 거절 알림</div></div>
+  </div>
+  <div class="expl3 r"><div class="item"><div class="lb">만든 것</div><div class="w">흩어진 기록을 한 화면에</div><div class="h">예약 · 보강 · 문의 · 작품 · 가마 대기를 오늘 화면에 모음</div></div><div class="item"><div class="lb">막은 오류</div><div class="w">발송 작품 상태 꼬임</div><div class="h">발송한 작품 되돌리기 거절, 배송완료 전 수령 거절</div></div><div class="item"><div class="lb">해결한 요구</div><div class="w">택배 파손 대비 · 운영 기록</div><div class="h">택배사 · 송장 · 배송 단계 기록, 가마 30점 기준 표시</div></div></div>
+</section>
+
 <section class="slide demo" data-title="시연 — 수강생 화면" data-section="시연" data-demo="app1">
   <div class="demo-head">
     <span class="ttl">시연</span><span class="subt">수강생 화면</span><span class="url" data-demo-url></span>
@@ -615,25 +674,14 @@ body.on-demo #bar { display: none; }
   </table>
 </section>
 
-<section class="slide" data-title="고객께 확인받을 것" data-section="마무리">
-  <div class="head"><div><div class="kicker">05 · 마무리</div><h2 class="title">고객께 확인받을 것</h2></div></div>
-  <div class="body center-y">
-    <table class="t r" style="font-size:27px">
-      <thead><tr><th style="width:560px">항목</th><th>지금 상태</th></tr></thead>
-      <tbody>
-        <tr class="hot"><td class="k">노쇼 기준</td><td>가정: 수업 시작 뒤 직원 표시 · 환불 대상 아님</td></tr>
-        <tr><td class="k">가마 파손 시 재제작 · 환불</td><td>기준 없음 → 안내 문안 보류</td></tr>
-        <tr><td class="k">대기자 · 수강료 · 할인</td><td>기준 없음 → 미구현</td></tr>
-        <tr><td class="k">후기 항목 · 준비물 수량</td><td>항목 미정 → 미구현</td></tr>
-      </tbody>
-    </table>
-  </div>
-</section>
+
 
 <section class="slide thanks deco" data-title="감사합니다" data-section="마무리">
   <div class="deco-art" aria-hidden="true"><div class="glow"></div></div>
-  <div class="grid3" style="grid-template-columns:1fr">
-    <div class="r"><div class="kicker">THANK YOU</div><h1>감사합니다</h1><p class="lead mono" style="margin-top:20px">heuk-frontend.vercel.app</p></div>
+  <div class="grid3">
+    <div class="r"><div class="kicker">THANK YOU</div><h1>감사합니다</h1></div>
+    <figure class="qr-card r"><img class="qr" src="qr-web.png" alt="웹 주소 QR"><figcaption><b>웹</b><span>heuk-frontend.vercel.app</span></figcaption></figure>
+    <figure class="qr-card r"><img class="qr" src="qr-deck.png" alt="발표 자료 주소 QR"><figcaption><b>발표 자료</b><span>jexists.github.io/studio-booking</span></figcaption></figure>
   </div>
 </section>
 

@@ -78,7 +78,7 @@
 ### PUB-03 내 예약 들어가기 `/me`
 - 입력: 예약 번호(영문·숫자 6자리 또는 엑셀에서 온 10자리 번호), 휴대폰 뒤 4자리. [조회]
 - 틀리면 "예약 번호나 휴대폰 뒤 4자리가 맞지 않아요" (어느 쪽이 틀렸는지 알려 주지 않음).
-- 성공하면 `/me/[예약번호]` 로 이동, 브라우저 `sessionStorage` 에 확인 토큰 보관(새로고침해도 유지).
+- 성공하면 같은 화면에 예약·작품을 보여 준다. 토큰 없이 요청마다 예약번호+뒤4자리를 다시 확인한다.
 
 ### PUB-04 내 예약·작품 `/me/[reservationNo]`
 ```
@@ -286,6 +286,9 @@ erDiagram
 | 노쇼 | [가정] 고객 기준 없음 | `ScheduleService.markNoShow`: 원데이·신청/확정·수업 시작 후만(이전 400), 대기 중 환불 요청 있으면 400. `undoNoShow`로 확정 복귀. 노쇼는 환불 계산 안 함, 환불 요청·취소 불가, 정원 계산에서 제외 | STF-05 [노쇼]·[노쇼 되돌리기], "환불 대상 아님" / PUB-04 "노쇼 · 환불 대상 아님" / STF-03 오늘 노쇼 수 |
 | 단계 한 칸씩, 되돌리기 한 칸 | A-04 | `WorksService.changeStage` | STF-06 |
 | 수령은 수령 방식이 있어야 | 추가 인터뷰 | 같은 함수 | STF-06 |
+| 택배 작품은 배송완료 뒤 수령, 발송한 작품은 완성 이전으로 못 되돌림 | 테스트 P-01·P-02 | `WorksService.moveOne` | STF-06 |
+| 직원 대리 등록은 시작 전 수업만 | 테스트 P-04 | `ScheduleService.addReservation` | STF-05 |
+| 단체 문의 희망 날짜는 오늘 이후 | 테스트 P-06 | `InquiriesService.create` | PUB-07 |
 | 완성 예상 범위 | R-06 | `WorksService` 응답에 계산값 포함 (수업일+21~28일) | PUB-04 |
 | 보관 기한 | R-07 | 완성일+60일 계산, "기한 지남" 필터 | PUB-04, STF-03, STF-06 |
 | 보강 후보 조건 | R-08 | `MakeupsService.candidates`: 같은 ISO 주, 다른 반, 같은 종류, 시작 전, 남은 자리 ≥1 | PUB-05 |
@@ -295,7 +298,7 @@ erDiagram
 | 자료 즉시 반영 | R-12 | `DocumentsService.upload`: 저장 → 글자 추출 → 임베딩 → `READY`. 검색은 `READY` 조각만 | STF-08 |
 | 견적 금액·상태는 대표만 | A-02 | `InquiriesController` 역할 검사 | STF-09 |
 | 직원 초대는 대표만 | R-14 | `StaffController` 역할 검사 | STF-11 |
-| 수강생은 자기 예약만 | U-03 | `MeController`: 예약번호+뒤4자리 일치 시 그 예약 데이터만, 짧은 확인 토큰 발급 | PUB-03~05 |
+| 수강생은 자기 예약만 | U-03 | `checkOwner`: 예약번호+뒤4자리 일치 시 그 예약 데이터만. 같은 예약번호로 10분 안에 5번 틀리면 10분 잠금(429) | PUB-03~05 |
 
 ---
 
@@ -305,7 +308,7 @@ erDiagram
 | --- | --- |
 | 직원 | 로그인 시 무작위 토큰 발급 → `StaffSession` 저장 → 프론트는 `Authorization: Bearer` 로 전송. 백엔드 `StaffGuard`(로그인 확인), `OwnerGuard`(대표 확인) |
 | 비밀번호 | Node 기본 `crypto.scrypt` + 소금값으로 해시 (패키지 추가 없음) [제안] |
-| 수강생 | `POST /me/verify` (예약번호+뒤4자리) → 1시간짜리 서명 토큰(HMAC, 예약 id 포함) → 이후 `/me/*` 요청에 사용 |
+| 수강생 | `POST /me/lookup`·`/me/cancel-request`·`/me/makeups*` 요청마다 예약번호+뒤4자리 확인(토큰 없음). 반복 대입은 예약번호별 실패 5회/10분 → 10분 잠금 |
 | 방문자 | 일정 조회·신청·질문·단체 문의는 인증 없음 |
 | 화면 | `/staff/*` 는 토큰 없으면 `/staff/login` 으로. 버튼 숨김은 편의일 뿐, 판단은 백엔드 |
 
@@ -340,7 +343,7 @@ erDiagram
 | GET | `/classes?from&to&program` | 공개 | 일정 + 남은 자리 |
 | GET | `/courses?open=true` | 공개 | 신청 가능한 정규반 |
 | POST | `/reservations` | 공개 | 신청 (정원 검사) → 예약 번호 |
-| POST | `/me/verify` | 공개 | 예약번호+뒤4자리 → 수강생 토큰 |
+| POST | `/me/lookup` | 공개 | 예약번호+뒤4자리 → 내 예약·작품 |
 | GET | `/me` | 수강생 | 내 예약·작품·보강 |
 | GET | `/me/makeup-candidates?missedSessionId` | 수강생 | 보강 후보 |
 | POST | `/me/makeups` | 수강생 | 보강 신청 |

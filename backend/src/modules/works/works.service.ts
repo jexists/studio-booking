@@ -165,7 +165,8 @@ export class WorksService {
     const w = await this.get(id);
     if (w.shipStatus !== 'SHIPPING') throw new BadRequestException('배송중인 작품만 배송완료로 바꿀 수 있어요');
     const updated = await this.prisma.$transaction(async (tx) => {
-      const moved = w.stage === 'DONE' ? await this.moveOne(tx, w, 'next', staffId) : w;
+      // 배송완료로 바꾸면서 수령 단계로 넘긴다(배송완료 상태로 단계 검사)
+      const moved = w.stage === 'DONE' ? await this.moveOne(tx, { ...w, shipStatus: 'DELIVERED' }, 'next', staffId) : w;
       return tx.work.update({ where: { id }, data: { shipStatus: 'DELIVERED', deliveredAt: new Date() } }).then((r) => ({ ...moved, ...r }));
     });
     return this.view(updated, await this.warnings());
